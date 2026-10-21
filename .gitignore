@@ -1,0 +1,66 @@
+# Variables de entorno / secretos
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+
+# Dependencias y compilados (JavaScript / TypeScript)
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+.next/
+.vite/
+
+# Python (si se usa)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Java / Kotlin (si se usan)
+target/
+.gradle/
+*.class
+
+# Go (si se usa)
+*.test
+
+# C# / .NET (si se usa)
+bin/
+obj/
+
+# Logs y temporales
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# Sistemas operativos
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos locales de bases de datos (NO ignorar scripts .sql)
+*.sqlite
+*.sqlite3
+*.db
+
+# Artefactos locales comprimidos
+*.zip
