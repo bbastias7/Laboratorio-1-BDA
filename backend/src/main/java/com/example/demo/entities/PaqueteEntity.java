@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Paquete {
+public class PaqueteEntity {
     private Integer id;
     private String codigo;
     private String estado;
@@ -19,7 +19,7 @@ public class Paquete {
     private LocalDateTime fechaCompromiso;
     private LocalDateTime despachadoAt;
     private LocalDateTime entregadoAt;
-    private Usuario cliente;
-    private CentroDistribucion centro;
-    private Paquete paqueteOrigen;
+    private UsuarioEntity cliente;
+    private CentroDistribucionEntity centro;
+    private PaqueteEntity paqueteOrigen;
 }

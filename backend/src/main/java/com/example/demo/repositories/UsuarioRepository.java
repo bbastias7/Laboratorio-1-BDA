@@ -1,5 +1,5 @@
 package com.example.demo.repositories;
-import com.example.demo.entities.Usuario;
+import com.example.demo.entities.UsuarioEntity;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -20,7 +20,7 @@ public class UsuarioRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final RowMapper<Usuario> usuarioRowMapper = (rs, rowNum) -> new Usuario(
+    private final RowMapper<UsuarioEntity> usuarioRowMapper = (rs, rowNum) -> new UsuarioEntity(
             rs.getInt("id"),
             rs.getString("nombre"),
             rs.getString("email"),
@@ -29,16 +29,16 @@ public class UsuarioRepository {
     );
 
 
-    public List<Usuario> findAll() {
+    public List<UsuarioEntity> findAll() {
         String sql = "SELECT id, nombre, email, password, rol FROM usuario";
         return jdbcTemplate.query(sql, usuarioRowMapper);
     }
 
 
-    public Optional<Usuario> findById(Integer id) {
+    public Optional<UsuarioEntity> findById(Integer id) {
         String sql = "SELECT id, nombre, email, password, rol FROM usuario WHERE id = ?";
         try {
-            Usuario usuario = jdbcTemplate.queryForObject(sql, usuarioRowMapper, id);
+            UsuarioEntity usuario = jdbcTemplate.queryForObject(sql, usuarioRowMapper, id);
             return Optional.ofNullable(usuario);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -46,10 +46,10 @@ public class UsuarioRepository {
     }
 
 
-    public Optional<Usuario> findByEmail(String email) {
+    public Optional<UsuarioEntity> findByEmail(String email) {
         String sql = "SELECT id, nombre, email, password, rol FROM usuario WHERE email = ?";
         try {
-            Usuario usuario = jdbcTemplate.queryForObject(sql, usuarioRowMapper, email);
+            UsuarioEntity usuario = jdbcTemplate.queryForObject(sql, usuarioRowMapper, email);
             return Optional.ofNullable(usuario);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -57,7 +57,7 @@ public class UsuarioRepository {
     }
 
 
-    public Usuario save(Usuario usuario) {
+    public UsuarioEntity save(UsuarioEntity usuario) {
         String sql = "INSERT INTO usuario (nombre, email, password, rol) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -78,7 +78,7 @@ public class UsuarioRepository {
     }
 
 
-    public int update(Usuario usuario) {
+    public int update(UsuarioEntity usuario) {
         String sql = "UPDATE usuario SET nombre = ?, email = ?, password = ?, rol = ? WHERE id = ?";
         return jdbcTemplate.update(
                 sql,

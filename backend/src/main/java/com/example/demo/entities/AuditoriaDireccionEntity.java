@@ -8,11 +8,11 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditoriaDireccion {
+public class AuditoriaDireccionEntity {
     private Integer id;
-    private Paquete paquete;
+    private PaqueteEntity paquete;
     private String direccionAnterior;
     private String direccionNueva;
-    private Usuario usuario;
+    private UsuarioEntity usuario;
     private LocalDateTime fecha;
 }

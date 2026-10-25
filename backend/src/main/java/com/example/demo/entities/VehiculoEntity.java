@@ -3,15 +3,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventoSeguimiento {
+public class VehiculoEntity {
     private Integer id;
-    private Paquete paquete;
-    private String estado;
-    private String descripcion;
-    private LocalDateTime fecha;
+    private String patente;
+    private Double capacidadPeso;
+    private Double capacidadVolumen;
+    private CentroDistribucionEntity centro;
 }

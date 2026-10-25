@@ -8,9 +8,10 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RutaPaquete {
-    private Ruta ruta;
-    private Paquete paquete;
-    private String resultado;
-    private LocalDateTime fechaResultado;
+public class EventoSeguimientoEntity {
+    private Integer id;
+    private PaqueteEntity paquete;
+    private String estado;
+    private String descripcion;
+    private LocalDateTime fecha;
 }

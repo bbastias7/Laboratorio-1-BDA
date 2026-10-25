@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Repartidor {
+public class CentroDistribucionEntity {
     private Integer id;
-    private Usuario usuario;
-    private CentroDistribucion centro;
+    private String nombre;
+    private String direccion;
+    private String ciudad;
 }
