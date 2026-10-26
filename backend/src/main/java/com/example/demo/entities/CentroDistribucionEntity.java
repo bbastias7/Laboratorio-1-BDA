@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CentroDistribucionEntity {
-    private Integer id;
+    private Integer centroDistId; //PK
     private String nombre;
     private String direccion;
     private String ciudad;

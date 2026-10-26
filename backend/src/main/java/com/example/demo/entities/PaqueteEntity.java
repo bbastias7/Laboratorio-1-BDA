@@ -9,7 +9,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaqueteEntity {
-    private Integer id;
+    private Integer paqueteId; //PK
+    private Integer usuarioClienteId; //FK
+    private Integer centroDistId; //FK
+    private Integer paqueteOrigenId; //FK
     private String codigo;
     private String estado;
     private Double peso;
@@ -19,7 +22,4 @@ public class PaqueteEntity {
     private LocalDateTime fechaCompromiso;
     private LocalDateTime despachadoAt;
     private LocalDateTime entregadoAt;
-    private UsuarioEntity cliente;
-    private CentroDistribucionEntity centro;
-    private PaqueteEntity paqueteOrigen;
 }

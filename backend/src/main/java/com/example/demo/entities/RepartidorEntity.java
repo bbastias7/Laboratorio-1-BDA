@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RepartidorEntity {
-    private Integer id;
-    private UsuarioEntity usuario;
-    private CentroDistribucionEntity centro;
+    private Integer repartidorId;
+    private Integer usuarioId;
+    private Integer centroDistId;
 }

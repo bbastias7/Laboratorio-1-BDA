@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventoSeguimientoEntity {
-    private Integer id;
-    private PaqueteEntity paquete;
+    private Integer eventoId; //PK
+    private Integer paqueteId; //FK
     private String estado;
     private String descripcion;
     private LocalDateTime fecha;

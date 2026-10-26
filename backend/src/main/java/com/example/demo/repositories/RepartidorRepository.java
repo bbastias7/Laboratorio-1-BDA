@@ -8,8 +8,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,65 +21,57 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RepartidorRepository {
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<RepartidorEntity> repartidorRowMapper = (rs, rowNum) -> {
-        UsuarioEntity usuario = new UsuarioEntity(
-                rs.getInt("u_id"),
-                rs.getString("nombre"),
-                rs.getString("email"),
-                rs.getString("password"),
-                rs.getString("rol")
+    private final RowMapper<RepartidorEntity> repartidorRowMapper = (rs, rowNum) -> new RepartidorEntity(
+            rs.getInt("id"),
+            rs.getInt("usuario_id"),
+            rs.getInt("centro_id")
         );
-
-        CentroDistribucionEntity centro = new CentroDistribucionEntity(
-                rs.getInt("centro_id"),
-                rs.getString("centro_nombre"),
-                rs.getString("centro_direccion"),
-                rs.getString("centro_ciudad")
-        );
-
-        return new RepartidorEntity(
-                rs.getInt("r_id"),
-                usuario,
-                centro
-        );
-    };
-
 
     public List<RepartidorEntity> findAll() {
-        String sql = """
-            SELECT r.id AS r_id, r.centro_id,
-                   c.nombre AS centro_nombre, c.direccion AS centro_direccion,
-                   c.ciudad AS centro_ciudad,
-                   u.id AS u_id, u.nombre, u.email, u.password, u.rol
-            FROM repartidor r
-            INNER JOIN usuario u ON r.usuario_id = u.id
-            INNER JOIN centro_distribucion c ON r.centro_id = c.id
-            """;
-        return jdbcTemplate.query(sql, repartidorRowMapper);
+        return jdbcTemplate.query(
+                "SELECT id, usuario_id, centro_id FROM repartidor",
+                repartidorRowMapper
+        );
     }
 
 
     public Optional<RepartidorEntity> findById(Integer id) {
-        String sql = """
-            SELECT r.id AS r_id, r.centro_id,
-                   c.nombre AS centro_nombre, c.direccion AS centro_direccion,
-                   c.ciudad AS centro_ciudad,
-                   u.id AS u_id, u.nombre, u.email, u.password, u.rol
-            FROM repartidor r
-            INNER JOIN usuario u ON r.usuario_id = u.id
-            INNER JOIN centro_distribucion c ON r.centro_id = c.id
-            WHERE r.id = ?
-            """;
         try {
-            RepartidorEntity repartidor = jdbcTemplate.queryForObject(sql, repartidorRowMapper, id);
+            RepartidorEntity repartidor = jdbcTemplate.queryForObject(
+                    "SELECT id, usuario_id, centro_id FROM repartidor WHERE id = ?",
+                    repartidorRowMapper, id);
             return Optional.ofNullable(repartidor);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
     }
 
-
     public RepartidorEntity save(RepartidorEntity repartidor) {
+        Integer generatedId = jdbcTemplate.queryForObject(
+                "INSERT INTO repartidor (usuario_id, centro_id) VALUES (?, ?) RETURNING id",
+                Integer.class,
+                repartidor.getUsuarioId(),
+                repartidor.getCentroDistId()
+        );
+        if (generatedId == null) {
+            throw new IllegalStateException("La inserción no devolvió el ID del repartidor");
+        }
+        repartidor.setRepartidorId(generatedId);
+        return repartidor;
+    }
 
+    public int update(RepartidorEntity repartidor) {
+        String sql = "UPDATE repartidor SET centro_id = ? WHERE id = ?";
+        return jdbcTemplate.update(
+                sql,
+                repartidor.getCentroDistId(),
+                repartidor.getRepartidorId()
+        );
+    }
+
+    public int deleteById(Integer id) {
+        String sql = "DELETE FROM repartidor WHERE id = ?";
+        return jdbcTemplate.update(sql, id);
     }
 }
+

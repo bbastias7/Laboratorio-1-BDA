@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuditoriaDireccionEntity {
-    private Integer id;
-    private PaqueteEntity paquete;
+    private Integer auditoriaId; //PK
+    private Integer paqueteId; //FK
+    private Integer usuarioId; //FK
     private String direccionAnterior;
     private String direccionNueva;
-    private UsuarioEntity usuario;
     private LocalDateTime fecha;
 }

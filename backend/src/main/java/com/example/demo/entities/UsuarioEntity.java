@@ -8,9 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioEntity {
-    private Integer id;
+    private Integer usuarioId; //PK
     private String nombre;
     private String email;
-    private String password;
     private String rol;
 }

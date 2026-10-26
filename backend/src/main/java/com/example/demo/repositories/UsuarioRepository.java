@@ -5,12 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,21 +20,20 @@ public class UsuarioRepository {
             rs.getInt("id"),
             rs.getString("nombre"),
             rs.getString("email"),
-            rs.getString("password"),
             rs.getString("rol")
     );
 
+    private static final String USUARIO_SELECT = "SELECT id, nombre, email, rol FROM usuario";
 
     public List<UsuarioEntity> findAll() {
-        String sql = "SELECT id, nombre, email, password, rol FROM usuario";
-        return jdbcTemplate.query(sql, usuarioRowMapper);
+        return jdbcTemplate.query(USUARIO_SELECT, usuarioRowMapper);
     }
 
 
     public Optional<UsuarioEntity> findById(Integer id) {
-        String sql = "SELECT id, nombre, email, password, rol FROM usuario WHERE id = ?";
         try {
-            UsuarioEntity usuario = jdbcTemplate.queryForObject(sql, usuarioRowMapper, id);
+            UsuarioEntity usuario = jdbcTemplate.queryForObject(
+                    USUARIO_SELECT + " WHERE id = ?", usuarioRowMapper, id);
             return Optional.ofNullable(usuario);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -47,9 +42,9 @@ public class UsuarioRepository {
 
 
     public Optional<UsuarioEntity> findByEmail(String email) {
-        String sql = "SELECT id, nombre, email, password, rol FROM usuario WHERE email = ?";
         try {
-            UsuarioEntity usuario = jdbcTemplate.queryForObject(sql, usuarioRowMapper, email);
+            UsuarioEntity usuario = jdbcTemplate.queryForObject(
+                    USUARIO_SELECT + " WHERE email = ?", usuarioRowMapper, email);
             return Optional.ofNullable(usuario);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -58,35 +53,29 @@ public class UsuarioRepository {
 
 
     public UsuarioEntity save(UsuarioEntity usuario) {
-        String sql = "INSERT INTO usuario (nombre, email, password, rol) VALUES (?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, usuario.getNombre());
-            ps.setString(2, usuario.getEmail());
-            ps.setString(3, usuario.getPassword());
-            ps.setString(4, usuario.getRol());
-            return ps;
-        }, keyHolder);
-
-        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
-            usuario.setId((Integer) keyHolder.getKeys().get("id"));
+        Integer generatedId = jdbcTemplate.queryForObject(
+                "INSERT INTO usuario (nombre, email, rol) VALUES (?, ?, ?) RETURNING id",
+                Integer.class,
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol()
+        );
+        if (generatedId == null) {
+            throw new IllegalStateException("La insercion no devolvio el ID del usuario");
         }
-
+        usuario.setUsuarioId(generatedId);
         return usuario;
     }
 
 
     public int update(UsuarioEntity usuario) {
-        String sql = "UPDATE usuario SET nombre = ?, email = ?, password = ?, rol = ? WHERE id = ?";
+        String sql = "UPDATE usuario SET nombre = ?, email = ?, rol = ? WHERE id = ?";
         return jdbcTemplate.update(
                 sql,
                 usuario.getNombre(),
                 usuario.getEmail(),
-                usuario.getPassword(),
                 usuario.getRol(),
-                usuario.getId()
+                usuario.getUsuarioId()
         );
     }
 

@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VehiculoEntity {
-    private Integer id;
+    private Integer vehiculoId; //PK
+    private Integer centroDistId; //FK
     private String patente;
     private Double capacidadPeso;
     private Double capacidadVolumen;
-    private CentroDistribucionEntity centro;
 }

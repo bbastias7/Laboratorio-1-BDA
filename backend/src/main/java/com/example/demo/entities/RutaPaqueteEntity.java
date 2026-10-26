@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RutaPaqueteEntity {
-    private RutaEntity ruta;
-    private PaqueteEntity paquete;
+    private Integer rutaId; //FK
+    private Integer paqueteId; //FK
     private String resultado;
     private LocalDateTime fechaResultado;
 }

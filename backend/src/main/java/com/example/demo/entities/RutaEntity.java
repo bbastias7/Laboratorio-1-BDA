@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RutaEntity {
-    private Integer id;
-    private CentroDistribucionEntity centro;
-    private UsuarioEntity repartidor;
-    private VehiculoEntity vehiculo;
+    private Integer rutaId; //PK
+    private Integer centroDistId; //FK
+    private Integer repartidorId; //FK
+    private Integer vehiculoId; //FK
     private LocalDateTime fecha;
 }
