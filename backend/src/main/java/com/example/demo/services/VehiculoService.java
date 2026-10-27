@@ -4,7 +4,6 @@ import com.example.demo.entities.VehiculoEntity;
 import com.example.demo.repositories.VehiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -41,6 +40,11 @@ public class VehiculoService {
         return vehiculoRepository.findByCapacidadVolumen(volumen);
     }
 
+    /*
+    public List<VehiculoEntity> findByCentroId(Integer centro_id) {
+
+    }
+    */
 
     public VehiculoEntity saveVehiculo(VehiculoEntity vehiculo) {
         validarCapacidades(vehiculo);
@@ -68,6 +72,14 @@ public class VehiculoService {
             throw new IllegalStateException("No se pudo actualizar el vehículo con ID: " + id);
         }
         return vehiculoExistente;
+    }
+
+
+    public void deleteVehiculo(Integer id) {
+        int filasAfectadas = vehiculoRepository.deleteById(id);
+        if (filasAfectadas == 0) {
+            throw new IllegalStateException("No se pudo eliminar el vehiculo");
+        }
     }
 
 

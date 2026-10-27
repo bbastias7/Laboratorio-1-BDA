@@ -52,6 +52,20 @@ public class UsuarioRepository {
     }
 
 
+    public List<UsuarioEntity> findByNombre(String nombre) {
+        String sql = USUARIO_SELECT + " WHERE nombre ILIKE ?";
+        String searchPattern = "%" + nombre + "%";
+        return jdbcTemplate.query(sql, usuarioRowMapper, searchPattern);
+    }
+
+
+    public List<UsuarioEntity> findByRol(String rol) {
+        String sql = USUARIO_SELECT + " WHERE rol = ?";
+        String searchPattern = "%" + rol + "%";
+        return jdbcTemplate.query(sql, usuarioRowMapper, searchPattern);
+    }
+
+
     public UsuarioEntity save(UsuarioEntity usuario) {
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO usuario (nombre, email, rol) VALUES (?, ?, ?) RETURNING id",

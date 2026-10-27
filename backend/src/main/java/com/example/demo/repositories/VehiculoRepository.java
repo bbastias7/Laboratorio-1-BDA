@@ -104,6 +104,12 @@ public class VehiculoRepository {
     }
 
 
+    public int deleteById(Integer id) {
+        String sql = "DELETE FROM vehiculo v WHERE v.id = ?";
+        return jdbcTemplate.update(sql, id);
+    }
+
+
     private void validarCentro(VehiculoEntity vehiculo) {
         if (vehiculo.getCentroDistId() == null) {
             throw new IllegalArgumentException("El vehículo debe tener un centro de distribución válido");

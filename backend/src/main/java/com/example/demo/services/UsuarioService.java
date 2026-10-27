@@ -25,6 +25,22 @@ public class UsuarioService {
     }
 
 
+    public UsuarioEntity findByEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado con email: " + email));
+    }
+
+
+    public List<UsuarioEntity> findByNombre(String nombre) {
+        return usuarioRepository.findByNombre(nombre);
+    }
+
+
+    public List<UsuarioEntity> findByRol(String rol) {
+        return usuarioRepository.findByRol(rol);
+    }
+
+
     public UsuarioEntity saveUsuario(UsuarioEntity usuario) {
         usuarioRepository.findByEmail(usuario.getEmail()).ifPresent(u -> {
             throw new IllegalArgumentException("El email ya se encuentra registrado");
@@ -48,7 +64,6 @@ public class UsuarioService {
 
 
     public void deleteById(Integer id) {
-        findById(id);
         int filasAfectadas = usuarioRepository.deleteById(id);
         if (filasAfectadas == 0) {
             throw new IllegalStateException("No se pudo eliminar el usuario");

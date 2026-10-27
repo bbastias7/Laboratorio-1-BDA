@@ -25,6 +25,26 @@ public class RutaService {
                 .orElseThrow(() -> new NoSuchElementException("Ruta no encontrada con ID: " + id));
     }
 
+    /*
+    public List<RutaEntity> findByCentroId(Integer centro_id) {
+        return rutaRepository.find
+    }
+
+
+    public List<RutaEntity> findByRepartidorId(Integer repartidor_id) {
+
+    }
+
+
+    public List<RutaEntity> findByVehiculoId(Integer vehiculo_id) {
+
+    }
+
+
+    public RutaEntity findByFecha(LocalDateTime fecha) {
+
+    }
+    */
 
     public RutaEntity saveRuta(RutaEntity ruta) {
         validarCamposClave(ruta);
@@ -53,7 +73,6 @@ public class RutaService {
 
 
     public void deleteById(Integer id) {
-        findById(id);
         int filasAfectadas = rutaRepository.deleteById(id);
         if (filasAfectadas == 0) {
             throw new IllegalStateException("No se pudo eliminar la ruta con ID: " + id);
