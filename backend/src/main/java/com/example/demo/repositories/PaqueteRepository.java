@@ -61,7 +61,7 @@ public class PaqueteRepository {
 
     public PaqueteEntity save(PaqueteEntity paquete) {
         Integer generatedId = jdbcTemplate.queryForObject(
-                "INSERT INTO paquete (usuario_cliente_id, centro_dist_id, paquete_origen_id, codigo, estado, peso, volumen, direccion_destino, intentos, fecha_compromiso, despachado_at, entregado_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+                "INSERT INTO paquete (cliente_id, centro_id, paquete_origen_id, codigo, estado, peso, volumen, direccion_destino, intentos, fecha_compromiso, despachado_at, entregado_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
                 Integer.class,
                 paquete.getUsuarioClienteId(),
                 paquete.getCentroDistId(),
@@ -85,7 +85,7 @@ public class PaqueteRepository {
 
     public int update(PaqueteEntity paquete) {
         return jdbcTemplate.update(
-                "UPDATE paquete SET usuario_cliente_id = ?, centro_dist_id = ?, paquete_origen_id = ?, codigo = ?, estado = ?, peso = ?, volumen = ?, direccion_destino = ?, intentos = ?, fecha_compromiso = ?, despachado_at = ?, entregado_at = ? WHERE id = ?",
+                "UPDATE paquete SET cliente_id = ?, centro_id = ?, paquete_origen_id = ?, codigo = ?, estado = ?, peso = ?, volumen = ?, direccion_destino = ?, intentos = ?, fecha_compromiso = ?, despachado_at = ?, entregado_at = ? WHERE id = ?",
                 paquete.getUsuarioClienteId(),
                 paquete.getCentroDistId(),
                 paquete.getPaqueteOrigenId(),

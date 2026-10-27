@@ -23,7 +23,7 @@ public class CentroDistribucionRepository {
 
     public List<CentroDistribucionEntity> findAll() {
         return jdbcTemplate.query(
-                "SELECT centro_dist_id, nombre, direccion, ciudad FROM centro_distribucion",
+                "SELECT id, nombre, direccion, ciudad FROM centro_distribucion",
                 centroDistribucionRowMapper
         );
     }
@@ -31,7 +31,7 @@ public class CentroDistribucionRepository {
     public Optional<CentroDistribucionEntity> findById(Integer id) {
         try {
             return Optional.ofNullable(jdbcTemplate.queryForObject(
-                    "SELECT centro_dist_id, nombre, direccion, ciudad FROM centro_distribucion WHERE centro_dist_id = ?",
+                    "SELECT id, nombre, direccion, ciudad FROM centro_distribucion WHERE id = ?",
                     centroDistribucionRowMapper,
                     id
             ));
@@ -42,7 +42,7 @@ public class CentroDistribucionRepository {
 
     public CentroDistribucionEntity save(CentroDistribucionEntity centroDistribucion) {
         Integer generatedId = jdbcTemplate.queryForObject(
-                "INSERT INTO centro_distribucion (nombre, direccion, ciudad) VALUES (?, ?, ?) RETURNING centro_dist_id",
+                "INSERT INTO centro_distribucion (nombre, direccion, ciudad) VALUES (?, ?, ?) RETURNING id",
                 Integer.class,
                 centroDistribucion.getNombre(),
                 centroDistribucion.getDireccion(),
@@ -57,7 +57,7 @@ public class CentroDistribucionRepository {
 
     public int update(CentroDistribucionEntity centroDistribucion) {
         return jdbcTemplate.update(
-                "UPDATE centro_distribucion SET nombre = ?, direccion = ?, ciudad = ? WHERE centro_dist_id = ?",
+                "UPDATE centro_distribucion SET nombre = ?, direccion = ?, ciudad = ? WHERE id = ?",
                 centroDistribucion.getNombre(),
                 centroDistribucion.getDireccion(),
                 centroDistribucion.getCiudad(),
@@ -67,7 +67,7 @@ public class CentroDistribucionRepository {
 
     public int deleteById(Integer id) {
         return jdbcTemplate.update(
-                "DELETE FROM centro_distribucion WHERE centro_dist_id = ?",
+                "DELETE FROM centro_distribucion WHERE id = ?",
                 id
         );
     }
