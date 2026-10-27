@@ -33,8 +33,8 @@ public class RepartidorService {
     }
 
 
-    public RepartidorEntity updateRepartidor(RepartidorEntity repartidor) {
-        RepartidorEntity repartidorExistente = findById(repartidor.getRepartidorId());
+    public RepartidorEntity updateRepartidor(Integer id, RepartidorEntity repartidor) {
+        RepartidorEntity repartidorExistente = findById(id);
         repartidorExistente.setUsuarioId(repartidor.getUsuarioId());
         repartidorExistente.setCentroDistId(repartidor.getCentroDistId());
         int filasAfectadas = repartidorRepository.update(repartidorExistente);

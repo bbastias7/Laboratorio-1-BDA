@@ -33,8 +33,8 @@ public class CentroDistribucionService {
     }
 
 
-    public CentroDistribucionEntity updateCentroDistribucion(CentroDistribucionEntity centroDistribucion) {
-        CentroDistribucionEntity centroExistente = findById(centroDistribucion.getCentroDistId());
+    public CentroDistribucionEntity updateCentroDistribucion(Integer id, CentroDistribucionEntity centroDistribucion) {
+        CentroDistribucionEntity centroExistente = findById(id);
         centroExistente.setNombre(centroDistribucion.getNombre());
         centroExistente.setDireccion(String.valueOf(centroDistribucion.getDireccion()));
         centroExistente.setCiudad(String.valueOf(centroDistribucion.getCiudad()));
