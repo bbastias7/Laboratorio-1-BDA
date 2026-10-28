@@ -15,7 +15,7 @@ import java.util.Optional;
 public class CentroDistribucionRepository {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<CentroDistribucionEntity> centroDistribucionRowMapper = (rs, rowNum) -> new CentroDistribucionEntity(
-            rs.getInt("centro_dist_id"),
+            rs.getInt("id"),
             rs.getString("nombre"),
             rs.getString("direccion"),
             rs.getString("ciudad")

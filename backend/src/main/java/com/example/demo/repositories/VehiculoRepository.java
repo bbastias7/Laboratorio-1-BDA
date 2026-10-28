@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,8 +20,8 @@ public class VehiculoRepository {
                     rs.getInt("id"),
                     rs.getInt("centro_id"),
                     rs.getString("patente"),
-                    rs.getDouble("capacidad_peso"),
-                    rs.getDouble("capacidad_volumen")
+                    rs.getBigDecimal("capacidad_peso"),
+                    rs.getBigDecimal("capacidad_volumen")
             );
 
     private static final String VEHICULO_SELECT = """
@@ -56,13 +57,13 @@ public class VehiculoRepository {
     }
 
 
-    public List<VehiculoEntity> findByCapacidadPeso(Double capacidadPeso) {
+    public List<VehiculoEntity> findByCapacidadPeso(BigDecimal capacidadPeso) {
         String sql = VEHICULO_SELECT + " WHERE v.capacidad_peso = ?";
         return jdbcTemplate.query(sql, vehiculoEntityRowMapper, capacidadPeso);
     }
 
 
-    public List<VehiculoEntity> findByCapacidadVolumen(Double volumen) {
+    public List<VehiculoEntity> findByCapacidadVolumen(BigDecimal volumen) {
         String sql = VEHICULO_SELECT + " WHERE v.capacidad_volumen = ?";
         return jdbcTemplate.query(sql, vehiculoEntityRowMapper, volumen);
     }

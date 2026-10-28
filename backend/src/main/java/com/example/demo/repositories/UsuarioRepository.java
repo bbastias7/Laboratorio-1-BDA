@@ -20,10 +20,11 @@ public class UsuarioRepository {
             rs.getInt("id"),
             rs.getString("nombre"),
             rs.getString("email"),
-            rs.getString("rol")
+            rs.getString("rol"),
+            rs.getString("keycloak_id")
     );
 
-    private static final String USUARIO_SELECT = "SELECT id, nombre, email, rol FROM usuario";
+    private static final String USUARIO_SELECT = "SELECT id, nombre, email, rol, keycloak_id FROM usuario";
 
     public List<UsuarioEntity> findAll() {
         return jdbcTemplate.query(USUARIO_SELECT, usuarioRowMapper);
@@ -52,6 +53,15 @@ public class UsuarioRepository {
     }
 
 
+    public Optional<UsuarioEntity> findByKeycloakId(String keycloakId) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    USUARIO_SELECT + " WHERE keycloak_id = ?", usuarioRowMapper, keycloakId));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public List<UsuarioEntity> findByNombre(String nombre) {
         String sql = USUARIO_SELECT + " WHERE nombre ILIKE ?";
         String searchPattern = "%" + nombre + "%";
@@ -61,18 +71,18 @@ public class UsuarioRepository {
 
     public List<UsuarioEntity> findByRol(String rol) {
         String sql = USUARIO_SELECT + " WHERE rol = ?";
-        String searchPattern = "%" + rol + "%";
-        return jdbcTemplate.query(sql, usuarioRowMapper, searchPattern);
+        return jdbcTemplate.query(sql, usuarioRowMapper, rol);
     }
 
 
     public UsuarioEntity save(UsuarioEntity usuario) {
         Integer generatedId = jdbcTemplate.queryForObject(
-                "INSERT INTO usuario (nombre, email, rol) VALUES (?, ?, ?) RETURNING id",
+                "INSERT INTO usuario (nombre, email, rol, keycloak_id) VALUES (?, ?, ?, ?) RETURNING id",
                 Integer.class,
                 usuario.getNombre(),
                 usuario.getEmail(),
-                usuario.getRol()
+                usuario.getRol(),
+                usuario.getKeycloakId()
         );
         if (generatedId == null) {
             throw new IllegalStateException("La insercion no devolvio el ID del usuario");

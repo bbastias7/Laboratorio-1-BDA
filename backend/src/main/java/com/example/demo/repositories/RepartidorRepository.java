@@ -46,6 +46,16 @@ public class RepartidorRepository {
         }
     }
 
+    public Optional<RepartidorEntity> findByUsuarioId(Integer usuarioId) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    "SELECT id, usuario_id, centro_id FROM repartidor WHERE usuario_id = ?",
+                    repartidorRowMapper, usuarioId));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public RepartidorEntity save(RepartidorEntity repartidor) {
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO repartidor (usuario_id, centro_id) VALUES (?, ?) RETURNING id",

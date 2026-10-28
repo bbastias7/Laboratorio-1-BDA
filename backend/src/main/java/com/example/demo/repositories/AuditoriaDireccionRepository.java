@@ -18,7 +18,7 @@ public class AuditoriaDireccionRepository {
     private final RowMapper<AuditoriaDireccionEntity> auditoriaDireccionRowMapper = (rs, rowNum) -> new AuditoriaDireccionEntity(
             rs.getInt("id"),
             rs.getInt("paquete_id"),
-            rs.getInt("usuario_id"),
+            rs.getObject("usuario_id", Integer.class),
             rs.getString("direccion_anterior"),
             rs.getString("direccion_nueva"),
             rs.getObject("fecha", LocalDateTime.class)
@@ -44,6 +44,9 @@ public class AuditoriaDireccionRepository {
     }
 
     public AuditoriaDireccionEntity save(AuditoriaDireccionEntity auditoriaDireccion) {
+        if (auditoriaDireccion.getFecha() == null) {
+            auditoriaDireccion.setFecha(LocalDateTime.now());
+        }
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO auditoria_direccion (paquete_id, usuario_id, direccion_anterior, direccion_nueva, fecha) VALUES (?, ?, ?, ?, ?) RETURNING id",
                 Integer.class,

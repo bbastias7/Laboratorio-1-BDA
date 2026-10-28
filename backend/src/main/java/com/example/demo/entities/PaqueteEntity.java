@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -15,8 +16,8 @@ public class PaqueteEntity {
     private Integer paqueteOrigenId; //FK
     private String codigo;
     private String estado;
-    private Double peso;
-    private Double volumen;
+    private BigDecimal peso;
+    private BigDecimal volumen;
     private String direccionDestino;
     private Integer intentos;
     private LocalDateTime fechaCompromiso;

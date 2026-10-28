@@ -17,13 +17,13 @@ public class PaqueteRepository {
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<PaqueteEntity> paqueteRowMapper = (rs, rowNum) -> new PaqueteEntity(
             rs.getInt("id"),
-            rs.getInt("usuario_cliente_id"),
-            rs.getInt("centro_dist_id"),
+            rs.getInt("cliente_id"), //usuario
+            rs.getInt("centro_id"), //centro de distribucion
             rs.getObject("paquete_origen_id", Integer.class),
             rs.getString("codigo"),
             rs.getString("estado"),
-            rs.getDouble("peso"),
-            rs.getDouble("volumen"),
+            rs.getBigDecimal("peso"),
+            rs.getBigDecimal("volumen"),
             rs.getString("direccion_destino"),
             rs.getInt("intentos"),
             rs.getObject("fecha_compromiso", LocalDateTime.class),
@@ -32,7 +32,7 @@ public class PaqueteRepository {
     );
 
     private static final String PAQUETE_SELECT =
-            "SELECT id, usuario_cliente_id, centro_dist_id, paquete_origen_id, codigo, estado, " +
+            "SELECT id, cliente_id, centro_id, paquete_origen_id, codigo, estado, " +
             "peso, volumen, direccion_destino, intentos, fecha_compromiso, despachado_at, entregado_at FROM paquete";
 
     public List<PaqueteEntity> findAll() {
@@ -59,7 +59,27 @@ public class PaqueteRepository {
         }
     }
 
+    public List<PaqueteEntity> findByClienteId(Integer clienteId) {
+        return jdbcTemplate.query(PAQUETE_SELECT + " WHERE cliente_id = ?", paqueteRowMapper, clienteId);
+    }
+
+    public Optional<PaqueteEntity> findByCodigoAndClienteId(String codigo, Integer clienteId) {
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    PAQUETE_SELECT + " WHERE codigo = ? AND cliente_id = ?", paqueteRowMapper, codigo, clienteId
+            ));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public PaqueteEntity save(PaqueteEntity paquete) {
+        if (paquete.getEstado() == null) {
+            paquete.setEstado("Registrado");
+        }
+        if (paquete.getIntentos() == null) {
+            paquete.setIntentos(0);
+        }
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO paquete (cliente_id, centro_id, paquete_origen_id, codigo, estado, peso, volumen, direccion_destino, intentos, fecha_compromiso, despachado_at, entregado_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
                 Integer.class,
@@ -103,7 +123,12 @@ public class PaqueteRepository {
     }
 
     public int deleteById(Integer id) {
-        String sql = "DELETE FROM paquete WHERE id = ?";
+        String sql = "DELETE FROM paquete p WHERE p.id = ? AND p.estado = 'Registrado' " +
+                "AND p.despachado_at IS NULL " +
+                "AND NOT EXISTS (SELECT 1 FROM ruta_paquete rp WHERE rp.paquete_id = p.id) " +
+                "AND NOT EXISTS (SELECT 1 FROM evento_seguimiento es WHERE es.paquete_id = p.id) " +
+                "AND NOT EXISTS (SELECT 1 FROM auditoria_direccion ad WHERE ad.paquete_id = p.id) " +
+                "AND NOT EXISTS (SELECT 1 FROM paquete retorno WHERE retorno.paquete_origen_id = p.id)";
         return jdbcTemplate.update(sql, id);
     }
 

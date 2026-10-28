@@ -2,8 +2,8 @@ CREATE TABLE usuario (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(64) NOT NULL,
     email VARCHAR(128) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    rol VARCHAR(16) NOT NULL
+    rol VARCHAR(16) NOT NULL,
+    keycloak_id VARCHAR(128) UNIQUE NOT NULL
 );
 
 
@@ -30,6 +30,8 @@ CREATE TABLE vehiculo (
     capacidad_peso NUMERIC(10,2) NOT NULL,
     capacidad_volumen NUMERIC(10,2) NOT NULL,
     centro_id INT NOT NULL,
+    CONSTRAINT ck_vehiculo_capacidad_peso CHECK (capacidad_peso > 0),
+    CONSTRAINT ck_vehiculo_capacidad_volumen CHECK (capacidad_volumen > 0),
     CONSTRAINT fk_vehiculo_centro FOREIGN KEY (centro_id) REFERENCES centro_distribucion(id)
 );
 
@@ -46,17 +48,21 @@ CREATE TABLE paquete (
     despachado_at TIMESTAMP,
     entregado_at TIMESTAMP,
     cliente_id INT NOT NULL,
-    centro_id INT NOT NULL,
+    centro_id INT NOT NULL, -- centro de origen del paquete
     paquete_origen_id INT,
+    CONSTRAINT ck_paquete_peso CHECK (peso > 0),
+    CONSTRAINT ck_paquete_volumen CHECK (volumen > 0),
+    CONSTRAINT ck_paquete_intentos CHECK (intentos >= 0),
+    CONSTRAINT ck_paquete_no_auto_origen CHECK (paquete_origen_id IS DISTINCT FROM id),
     CONSTRAINT fk_paquete_cliente FOREIGN KEY (cliente_id) REFERENCES usuario(id),
     CONSTRAINT fk_paquete_centro FOREIGN KEY (centro_id) REFERENCES centro_distribucion(id),
-    CONSTRAINT fk_paquete_origen FOREIGN KEY (paquete_origen_id) REFERENCES paquete(id) ON DELETE SET NULL
+    CONSTRAINT fk_paquete_origen FOREIGN KEY (paquete_origen_id) REFERENCES paquete(id) ON DELETE RESTRICT
 );
 
 
 CREATE TABLE ruta (
     id SERIAL PRIMARY KEY,
-    centro_id INT NOT NULL,
+    centro_id INT NOT NULL, -- centro de origen de la ruta
     repartidor_id INT NOT NULL,
     vehiculo_id INT NOT NULL,
     fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -91,9 +97,18 @@ CREATE TABLE auditoria_direccion (
 CREATE TABLE ruta_paquete (
     ruta_id INT NOT NULL,
     paquete_id INT NOT NULL,
-    resultado VARCHAR(16) NOT NULL DEFAULT 'Pendiente',
-    fecha_resultado TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resultado VARCHAR(32) NOT NULL DEFAULT 'Pendiente',
+    fecha_resultado TIMESTAMP,
+    CONSTRAINT ck_ruta_paquete_resultado_fecha CHECK (
+        (resultado = 'Pendiente' AND fecha_resultado IS NULL)
+        OR (resultado <> 'Pendiente' AND fecha_resultado IS NOT NULL)
+    ),
     CONSTRAINT pk_ruta_paquete PRIMARY KEY (ruta_id, paquete_id),
-    CONSTRAINT fk_ruta_paquete_ruta FOREIGN KEY (ruta_id) REFERENCES ruta(id) ON DELETE CASCADE,
-    CONSTRAINT fk_ruta_paquete_paquete FOREIGN KEY (paquete_id) REFERENCES paquete(id) ON DELETE CASCADE
+    CONSTRAINT fk_ruta_paquete_ruta FOREIGN KEY (ruta_id) REFERENCES ruta(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_ruta_paquete_paquete FOREIGN KEY (paquete_id) REFERENCES paquete(id) ON DELETE RESTRICT
 );
+
+-- Conserva rutas anteriores, pero solo permite una asignacion activa por paquete.
+CREATE UNIQUE INDEX uq_ruta_paquete_pendiente
+    ON ruta_paquete (paquete_id)
+    WHERE resultado = 'Pendiente';

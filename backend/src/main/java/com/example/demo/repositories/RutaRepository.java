@@ -39,6 +39,11 @@ public class RutaRepository {
         }
     }
 
+    public List<RutaEntity> findByRepartidorId(Integer repartidorId) {
+        return jdbcTemplate.query(RUTA_SELECT + " WHERE repartidor_id = ? ORDER BY fecha DESC, id DESC",
+                rutaEntityRowMapper, repartidorId);
+    }
+
     public RutaEntity save(RutaEntity rutaEntity) {
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO ruta (centro_id, repartidor_id, vehiculo_id, fecha) VALUES (?, ?, ?, ?) RETURNING id",

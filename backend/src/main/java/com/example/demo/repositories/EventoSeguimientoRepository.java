@@ -43,6 +43,9 @@ public class EventoSeguimientoRepository {
     }
 
     public EventoSeguimientoEntity save(EventoSeguimientoEntity eventoSeguimiento) {
+        if (eventoSeguimiento.getFecha() == null) {
+            eventoSeguimiento.setFecha(LocalDateTime.now());
+        }
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO evento_seguimiento (paquete_id, estado, descripcion, fecha) VALUES (?, ?, ?, ?) RETURNING id",
                 Integer.class,
@@ -74,6 +77,23 @@ public class EventoSeguimientoRepository {
                 "DELETE FROM evento_seguimiento WHERE id = ?",
                 id
         );
+    }
+
+    public List<EventoSeguimientoEntity> rastreoPaquete(String codigo) {
+        String sql = "SELECT es.id, es.paquete_id, es.estado, es.descripcion, es.fecha " +
+                "FROM evento_seguimiento es " +
+                "JOIN paquete p ON es.paquete_id = p.id " +
+                "WHERE p.codigo = ? " +
+                "ORDER BY es.fecha ASC, es.id ASC";
+
+        return jdbcTemplate.query(sql, eventoSeguimientoRowMapper, codigo);
+    }
+
+    public List<EventoSeguimientoEntity> rastreoPaqueteDeCliente(String codigo, Integer clienteId) {
+        String sql = "SELECT es.id, es.paquete_id, es.estado, es.descripcion, es.fecha " +
+                "FROM evento_seguimiento es JOIN paquete p ON es.paquete_id = p.id " +
+                "WHERE p.codigo = ? AND p.cliente_id = ? ORDER BY es.fecha ASC, es.id ASC";
+        return jdbcTemplate.query(sql, eventoSeguimientoRowMapper, codigo, clienteId);
     }
 
 }

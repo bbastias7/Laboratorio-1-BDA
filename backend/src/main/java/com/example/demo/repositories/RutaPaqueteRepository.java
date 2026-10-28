@@ -43,6 +43,9 @@ public class RutaPaqueteRepository {
     }
 
     public RutaPaqueteEntity save(RutaPaqueteEntity rutaPaqueteEntity) {
+        if (rutaPaqueteEntity.getResultado() == null) {
+            rutaPaqueteEntity.setResultado("Pendiente");
+        }
         jdbcTemplate.update(
                 "INSERT INTO ruta_paquete (ruta_id, paquete_id, resultado, fecha_resultado) VALUES (?, ?, ?, ?)",
                 rutaPaqueteEntity.getRutaId(),
@@ -69,6 +72,28 @@ public class RutaPaqueteRepository {
                 rutaId,
                 paqueteId
         );
+    }
+
+    public List<RutaPaqueteEntity> findByRutaId(Integer rutaId) {
+        return jdbcTemplate.query(RUTA_PAQUETE_SELECT + " WHERE ruta_id = ? ORDER BY paquete_id",
+                rutaPaqueteEntityRowMapper, rutaId);
+    }
+
+    public List<RutaPaqueteEntity> findByPaqueteId(Integer paqueteId) {
+        return jdbcTemplate.query(
+                "SELECT rp.ruta_id, rp.paquete_id, rp.resultado, rp.fecha_resultado " +
+                        "FROM ruta_paquete rp JOIN ruta r ON r.id = rp.ruta_id " +
+                        "WHERE rp.paquete_id = ? ORDER BY r.fecha, r.id",
+                rutaPaqueteEntityRowMapper, paqueteId);
+    }
+
+    public boolean existsAsignacionPendiente(Integer paqueteId, Integer repartidorId) {
+        Boolean existe = jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM ruta_paquete rp " +
+                        "JOIN ruta r ON r.id = rp.ruta_id " +
+                        "WHERE rp.paquete_id = ? AND r.repartidor_id = ? AND rp.resultado = 'Pendiente')",
+                Boolean.class, paqueteId, repartidorId);
+        return Boolean.TRUE.equals(existe);
     }
 
 

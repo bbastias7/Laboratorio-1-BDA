@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +32,12 @@ public class VehiculoService {
     }
 
 
-    public List<VehiculoEntity> findByCapacidadPeso(Double peso) {
+    public List<VehiculoEntity> findByCapacidadPeso(BigDecimal peso) {
         return vehiculoRepository.findByCapacidadPeso(peso);
     }
 
 
-    public List<VehiculoEntity> findByCapacidadVolumen(Double volumen) {
+    public List<VehiculoEntity> findByCapacidadVolumen(BigDecimal volumen) {
         return vehiculoRepository.findByCapacidadVolumen(volumen);
     }
 
@@ -84,10 +85,10 @@ public class VehiculoService {
 
 
     private void validarCapacidades(VehiculoEntity vehiculo) {
-        if (vehiculo.getCapacidadPeso() == null || vehiculo.getCapacidadPeso() <= 0) {
+        if (vehiculo.getCapacidadPeso() == null || vehiculo.getCapacidadPeso().signum() <= 0) {
             throw new IllegalArgumentException("La capacidad de peso debe ser mayor a 0.");
         }
-        if (vehiculo.getCapacidadVolumen() == null || vehiculo.getCapacidadVolumen() <= 0) {
+        if (vehiculo.getCapacidadVolumen() == null || vehiculo.getCapacidadVolumen().signum() <= 0) {
             throw new IllegalArgumentException("La capacidad de volumen debe ser mayor a 0.");
         }
     }
