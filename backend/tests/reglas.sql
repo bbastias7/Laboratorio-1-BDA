@@ -67,6 +67,13 @@ BEGIN
  END LOOP;
  IF p.estado<>'Devuelto a origen' OR (SELECT count(*) FROM paquete WHERE paquete_origen_id=pid)<>1
  THEN RAISE EXCEPTION 'Retorno incorrecto'; END IF;
+ -- El destino de un paquete en estado final no cambia.
+ PERFORM pg_temp.rechaza(format('UPDATE paquete SET direccion_destino=''Tras retorno'' WHERE id=%s',pid));
+ UPDATE paquete SET estado='Entregado' WHERE id=pid;
+ PERFORM pg_temp.rechaza(format('UPDATE paquete SET direccion_destino=''Tras entrega'' WHERE id=%s',pid));
+ -- La auditoría es inmutable.
+ PERFORM pg_temp.rechaza('UPDATE auditoria_direccion SET direccion_nueva=''Alterada''');
+ PERFORM pg_temp.rechaza('DELETE FROM auditoria_direccion');
  REFRESH MATERIALIZED VIEW mv_rendimiento_entregas;
  IF EXISTS(SELECT 1 FROM mv_rendimiento_entregas WHERE entregas_totales>0 AND pct_a_tiempo NOT BETWEEN 0 AND 100)
  THEN RAISE EXCEPTION 'Porcentaje incorrecto'; END IF;

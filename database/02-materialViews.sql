@@ -17,3 +17,18 @@ JOIN repartidor rep ON rep.id=r.repartidor_id JOIN usuario u ON u.id=rep.usuario
 WHERE rp.resultado IN ('Entregado','Fallido')
 GROUP BY r.centro_id,c.nombre,r.repartidor_id,u.nombre;
 
+
+-- (centro_id, repartidor_id) es la clave del GROUP BY; el índice único permite REFRESH ... CONCURRENTLY.
+CREATE UNIQUE INDEX idx_mv_rendimiento_centro_repartidor
+    ON mv_rendimiento_entregas(centro_id, repartidor_id);
+
+-- Refresca la vista sin bloquear lecturas. Requiere la vista ya poblada (se crea con datos).
+CREATE OR REPLACE FUNCTION refrescar_mv_rendimiento() RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY mv_rendimiento_entregas;
+END $$;
+
+-- Refresco diario opcional dentro de la base (requiere la extensión pg_cron, no instalada por defecto):
+-- CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- SELECT cron.schedule('refrescar-mv-rendimiento', '0 2 * * *', 'SELECT refrescar_mv_rendimiento()');
+-- La aplicación Spring ejecuta el mismo refresco diario con @Scheduled.

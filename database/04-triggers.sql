@@ -47,6 +47,12 @@ FOR EACH ROW EXECUTE FUNCTION check_route_capacity();
 CREATE OR REPLACE FUNCTION audit_destination_change() RETURNS TRIGGER AS $$
 DECLARE actor integer;
 BEGIN
+    -- A delivered or returned package has no destination left to change.
+    IF OLD.estado IN ('Entregado', 'Devuelto a origen')
+       AND NEW.direccion_destino IS DISTINCT FROM OLD.direccion_destino THEN
+        RAISE EXCEPTION 'No se puede cambiar el destino de un paquete en estado final'
+            USING ERRCODE='23514';
+    END IF;
     IF OLD.despachado_at IS NOT NULL
        AND NEW.direccion_destino IS DISTINCT FROM OLD.direccion_destino THEN
         actor := NULLIF(current_setting('app.user_id',true), '')::integer;
@@ -66,6 +72,15 @@ DROP TRIGGER IF EXISTS destination_audit_before_update ON paquete;
 CREATE TRIGGER destination_audit_before_update
 BEFORE UPDATE OF direccion_destino ON paquete
 FOR EACH ROW EXECUTE FUNCTION audit_destination_change();
+
+-- The audit log is append-only: rows are only created by audit_destination_change.
+CREATE OR REPLACE FUNCTION proteger_auditoria() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'La auditoría de direcciones es inmutable' USING ERRCODE='23514';
+END $$;
+DROP TRIGGER IF EXISTS auditoria_inmutable ON auditoria_direccion;
+CREATE TRIGGER auditoria_inmutable BEFORE UPDATE OR DELETE ON auditoria_direccion
+FOR EACH ROW EXECUTE FUNCTION proteger_auditoria();
 
 
 CREATE OR REPLACE FUNCTION validar_perfiles() RETURNS trigger LANGUAGE plpgsql AS $$

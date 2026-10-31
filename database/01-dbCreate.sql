@@ -116,5 +116,7 @@ CREATE UNIQUE INDEX uq_ruta_paquete_pendiente
     WHERE resultado = 'Pendiente';
 
 CREATE INDEX idx_paquete_estado ON paquete(estado);
+-- El rastreo busca solo por igualdad (codigo = ?), por lo que un índice HASH es suficiente.
+CREATE INDEX idx_paquete_codigo ON paquete USING HASH (codigo);
 CREATE INDEX idx_evento_seguimiento_paquete_fecha ON evento_seguimiento(paquete_id,fecha,id);
 

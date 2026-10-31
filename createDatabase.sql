@@ -120,6 +120,8 @@ CREATE UNIQUE INDEX uq_ruta_paquete_pendiente
     WHERE resultado = 'Pendiente';
 
 CREATE INDEX idx_paquete_estado ON paquete(estado);
+-- El rastreo busca solo por igualdad (codigo = ?), por lo que un índice HASH es suficiente.
+CREATE INDEX idx_paquete_codigo ON paquete USING HASH (codigo);
 CREATE INDEX idx_evento_seguimiento_paquete_fecha ON evento_seguimiento(paquete_id,fecha,id);
 
 
@@ -143,6 +145,21 @@ JOIN repartidor rep ON rep.id=r.repartidor_id JOIN usuario u ON u.id=rep.usuario
 WHERE rp.resultado IN ('Entregado','Fallido')
 GROUP BY r.centro_id,c.nombre,r.repartidor_id,u.nombre;
 
+
+-- (centro_id, repartidor_id) es la clave del GROUP BY; el índice único permite REFRESH ... CONCURRENTLY.
+CREATE UNIQUE INDEX idx_mv_rendimiento_centro_repartidor
+    ON mv_rendimiento_entregas(centro_id, repartidor_id);
+
+-- Refresca la vista sin bloquear lecturas. Requiere la vista ya poblada (se crea con datos).
+CREATE OR REPLACE FUNCTION refrescar_mv_rendimiento() RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY mv_rendimiento_entregas;
+END $$;
+
+-- Refresco diario opcional dentro de la base (requiere la extensión pg_cron, no instalada por defecto):
+-- CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- SELECT cron.schedule('refrescar-mv-rendimiento', '0 2 * * *', 'SELECT refrescar_mv_rendimiento()');
+-- La aplicación Spring ejecuta el mismo refresco diario con @Scheduled.
 
 -- 03-storedProced.sql
 -- SP1: create a route and assign packages atomically. Any failure (including the
@@ -392,6 +409,12 @@ FOR EACH ROW EXECUTE FUNCTION check_route_capacity();
 CREATE OR REPLACE FUNCTION audit_destination_change() RETURNS TRIGGER AS $$
 DECLARE actor integer;
 BEGIN
+    -- A delivered or returned package has no destination left to change.
+    IF OLD.estado IN ('Entregado', 'Devuelto a origen')
+       AND NEW.direccion_destino IS DISTINCT FROM OLD.direccion_destino THEN
+        RAISE EXCEPTION 'No se puede cambiar el destino de un paquete en estado final'
+            USING ERRCODE='23514';
+    END IF;
     IF OLD.despachado_at IS NOT NULL
        AND NEW.direccion_destino IS DISTINCT FROM OLD.direccion_destino THEN
         actor := NULLIF(current_setting('app.user_id',true), '')::integer;
@@ -411,6 +434,15 @@ DROP TRIGGER IF EXISTS destination_audit_before_update ON paquete;
 CREATE TRIGGER destination_audit_before_update
 BEFORE UPDATE OF direccion_destino ON paquete
 FOR EACH ROW EXECUTE FUNCTION audit_destination_change();
+
+-- The audit log is append-only: rows are only created by audit_destination_change.
+CREATE OR REPLACE FUNCTION proteger_auditoria() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'La auditoría de direcciones es inmutable' USING ERRCODE='23514';
+END $$;
+DROP TRIGGER IF EXISTS auditoria_inmutable ON auditoria_direccion;
+CREATE TRIGGER auditoria_inmutable BEFORE UPDATE OR DELETE ON auditoria_direccion
+FOR EACH ROW EXECUTE FUNCTION proteger_auditoria();
 
 
 CREATE OR REPLACE FUNCTION validar_perfiles() RETURNS trigger LANGUAGE plpgsql AS $$
