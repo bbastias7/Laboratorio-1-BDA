@@ -4,6 +4,7 @@ import com.example.demo.entities.VehiculoEntity;
 import com.example.demo.repositories.VehiculoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -41,12 +42,8 @@ public class VehiculoService {
         return vehiculoRepository.findByCapacidadVolumen(volumen);
     }
 
-    /*
-    public List<VehiculoEntity> findByCentroId(Integer centro_id) {
 
-    }
-    */
-
+    @Transactional
     public VehiculoEntity saveVehiculo(VehiculoEntity vehiculo) {
         validarCapacidades(vehiculo);
         if (vehiculoRepository.findByPatente(vehiculo.getPatente()).isPresent()) {
@@ -56,6 +53,7 @@ public class VehiculoService {
     }
 
 
+    @Transactional
     public VehiculoEntity updateVehiculo(Integer id, VehiculoEntity vehiculoDetalles) {
         validarCapacidades(vehiculoDetalles);
         VehiculoEntity vehiculoExistente = findById(id);
@@ -76,6 +74,7 @@ public class VehiculoService {
     }
 
 
+    @Transactional
     public void deleteVehiculo(Integer id) {
         int filasAfectadas = vehiculoRepository.deleteById(id);
         if (filasAfectadas == 0) {

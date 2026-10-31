@@ -3,7 +3,10 @@ package com.example.demo.services;
 import com.example.demo.entities.RutaEntity;
 import com.example.demo.repositories.RutaRepository;
 import lombok.RequiredArgsConstructor;
+import com.example.demo.config.AuthUser;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,32 +23,35 @@ public class RutaService {
     }
 
 
+    /** despachador sees all routes; repartidor only its own. */
+    public List<RutaEntity> findVisibles(AuthUser u) {
+        return u.esDespachador() ? rutaRepository.findAll() : rutaRepository.findByUsuarioRepartidor(u.uid());
+    }
+
+    public RutaEntity findVisibleById(Integer id, AuthUser u) {
+        RutaEntity r = findById(id);
+        if (!u.esDespachador() && !rutaRepository.esDeUsuario(id, u.uid())) {
+            throw new AccessDeniedException("Ruta de otro repartidor");
+        }
+        return r;
+    }
+
+    /** Atomic assignment through the asignar_ruta stored procedure (capacity and state rules live in the DB). */
+    @Transactional
+    public RutaEntity asignar(Integer centroId, Integer repartidorId, Integer vehiculoId,
+                              LocalDateTime fecha, List<Integer> paqueteIds) {
+        int id = rutaRepository.asignarRuta(centroId, repartidorId, vehiculoId,
+                fecha == null ? LocalDateTime.now() : fecha, paqueteIds);
+        return findById(id);
+    }
+
     public RutaEntity findById(Integer id) {
         return rutaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Ruta no encontrada con ID: " + id));
     }
 
-    /*
-    public List<RutaEntity> findByCentroId(Integer centro_id) {
-        return rutaRepository.find
-    }
 
-
-    public List<RutaEntity> findByRepartidorId(Integer repartidor_id) {
-
-    }
-
-
-    public List<RutaEntity> findByVehiculoId(Integer vehiculo_id) {
-
-    }
-
-
-    public RutaEntity findByFecha(LocalDateTime fecha) {
-
-    }
-    */
-
+    @Transactional
     public RutaEntity saveRuta(RutaEntity ruta) {
         validarCamposClave(ruta);
         if (ruta.getFecha() == null) {
@@ -55,6 +61,7 @@ public class RutaService {
     }
 
 
+    @Transactional
     public RutaEntity updateRuta(Integer id, RutaEntity rutaDetalles) {
         validarCamposClave(rutaDetalles);
         RutaEntity rutaExistente = findById(id);
@@ -72,6 +79,7 @@ public class RutaService {
     }
 
 
+    @Transactional
     public void deleteById(Integer id) {
         int filasAfectadas = rutaRepository.deleteById(id);
         if (filasAfectadas == 0) {

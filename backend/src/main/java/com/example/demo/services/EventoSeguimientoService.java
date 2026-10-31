@@ -4,6 +4,7 @@ import com.example.demo.entities.EventoSeguimientoEntity;
 import com.example.demo.repositories.EventoSeguimientoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -25,14 +26,16 @@ public class EventoSeguimientoService {
     }
 
 
+    @Transactional
     public EventoSeguimientoEntity save(EventoSeguimientoEntity eventoSeguimientoEntity) {
-        if(eventoSeguimientoRepository.findById(eventoSeguimientoEntity.getEventoId()).isPresent()) {
+        if(eventoSeguimientoEntity.getEventoId() != null && eventoSeguimientoRepository.findById(eventoSeguimientoEntity.getEventoId()).isPresent()) {
             throw new IllegalStateException("No se encontro el registro");
         }
         return eventoSeguimientoRepository.save(eventoSeguimientoEntity);
     }
 
 
+    @Transactional
     public EventoSeguimientoEntity update(EventoSeguimientoEntity eventoSeguimientoEntity) {
         EventoSeguimientoEntity eventoExistente = findById(eventoSeguimientoEntity.getEventoId());
         eventoExistente.setPaqueteId(eventoSeguimientoEntity.getPaqueteId());
@@ -47,6 +50,7 @@ public class EventoSeguimientoService {
     }
 
 
+    @Transactional
     public void deleteById(Integer id) {
         int filasAfectadas = eventoSeguimientoRepository.deleteById(id);
         if(filasAfectadas == 0) {

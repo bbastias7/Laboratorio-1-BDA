@@ -1,0 +1,7 @@
+backend/target/
+keycloak/runtime/
+keycloak-*/
+**/__pycache__/
+*.log
+.env
+.idea/

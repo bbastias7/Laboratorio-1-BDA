@@ -1,48 +1,56 @@
 package com.example.demo.services;
 
 import com.example.demo.entities.RutaPaqueteEntity;
+import com.example.demo.repositories.PaqueteRepository;
 import com.example.demo.repositories.RutaPaqueteRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class RutaPaqueteService {
     private final RutaPaqueteRepository rutaPaqueteRepository;
-
+    private final PaqueteRepository paqueteRepository;
 
     public List<RutaPaqueteEntity> findAll() {
         return rutaPaqueteRepository.findAll();
     }
 
-
     public RutaPaqueteEntity findById(Integer rutaId, Integer paqueteId) {
         return rutaPaqueteRepository.findByIds(rutaId, paqueteId)
-                .orElseThrow(() -> new NoSuchElementException("Relación no encontrada"));
+                .orElseThrow(() -> new NoSuchElementException("Asignación inexistente"));
     }
 
-
-    public RutaPaqueteEntity saveRutaPaquete(RutaPaqueteEntity rutaPaquete) {
-        return rutaPaqueteRepository.save(rutaPaquete);
-    }
-
-
-    public RutaPaqueteEntity updateRutaPaquete(RutaPaqueteEntity rutaPaquete) {
-        RutaPaqueteEntity rutaPaqueteExistente = findById(rutaPaquete.getRutaId(), rutaPaquete.getPaqueteId());
-        rutaPaqueteExistente.setResultado(rutaPaquete.getResultado());
-        rutaPaqueteExistente.setFechaResultado(rutaPaquete.getFechaResultado());
-        int filasAfectadas = rutaPaqueteRepository.update(rutaPaqueteExistente);
-        if(filasAfectadas == 0){
-            throw new IllegalStateException("No se puede actualizar el paquete");
+    @Transactional
+    public RutaPaqueteEntity saveRutaPaquete(RutaPaqueteEntity asignacion) {
+        if (asignacion.getRutaId() == null || asignacion.getPaqueteId() == null) {
+            throw new IllegalArgumentException("rutaId y paqueteId requeridos");
         }
-        return rutaPaqueteExistente;
+        rutaPaqueteRepository.agregar(asignacion.getRutaId(), asignacion.getPaqueteId());
+        return findById(asignacion.getRutaId(), asignacion.getPaqueteId());
     }
 
+    @Transactional
+    public RutaPaqueteEntity updateRutaPaquete(RutaPaqueteEntity asignacion) {
+        findById(asignacion.getRutaId(), asignacion.getPaqueteId());
+        switch (Objects.toString(asignacion.getResultado(), "")) {
+            case "Entregado" -> paqueteRepository.registrarExitosa(
+                    asignacion.getPaqueteId(), asignacion.getRutaId());
+            case "Fallido" -> paqueteRepository.registrarFallida(
+                    asignacion.getPaqueteId(), asignacion.getRutaId(), "Resultado administrativo");
+            default -> throw new IllegalArgumentException(
+                    "Resultado debe ser Entregado o Fallido; no se reabren asignaciones");
+        }
+        return findById(asignacion.getRutaId(), asignacion.getPaqueteId());
+    }
 
+    @Transactional
     public void deleteById(Integer rutaId, Integer paqueteId) {
-        rutaPaqueteRepository.deleteByIds(rutaId, paqueteId);
+        findById(rutaId, paqueteId);
+        rutaPaqueteRepository.quitar(rutaId, paqueteId);
     }
 }

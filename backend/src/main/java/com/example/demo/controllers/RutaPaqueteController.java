@@ -5,11 +5,13 @@ import com.example.demo.services.RutaPaqueteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@PreAuthorize("hasRole('DESPACHADOR')")
 @RequestMapping("/api/rutapaquete")
 @RequiredArgsConstructor
 public class RutaPaqueteController {
@@ -32,7 +34,7 @@ public class RutaPaqueteController {
 
 
     @PostMapping
-    public ResponseEntity<RutaPaqueteEntity> saveRutaPaquete(@RequestBody RutaPaqueteEntity rutaPaqueteEntity) {
+    public ResponseEntity<RutaPaqueteEntity> saveRutaPaquete(@jakarta.validation.Valid @RequestBody RutaPaqueteEntity rutaPaqueteEntity) {
         RutaPaqueteEntity nuevaRutaPaquete = rutaPaqueteService.saveRutaPaquete(rutaPaqueteEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaRutaPaquete);
     }
@@ -42,7 +44,7 @@ public class RutaPaqueteController {
     public ResponseEntity<RutaPaqueteEntity> updateRutaPaquete(
             @PathVariable Integer rutaId,
             @PathVariable Integer paqueteId,
-            @RequestBody RutaPaqueteEntity rutaPaqueteEntity
+            @jakarta.validation.Valid @RequestBody RutaPaqueteEntity rutaPaqueteEntity
     ) {
         rutaPaqueteEntity.setRutaId(rutaId);
         rutaPaqueteEntity.setPaqueteId(paqueteId);

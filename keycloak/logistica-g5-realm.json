@@ -1,0 +1,203 @@
+{
+  "realm": "logistica-g5",
+  "enabled": true,
+  "displayName": "Laboratorio Grupo 5",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "accessTokenLifespan": 300,
+  "roles": {
+    "realm": [
+      {
+        "name": "cliente"
+      },
+      {
+        "name": "repartidor"
+      },
+      {
+        "name": "despachador"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "logistica-api",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true
+    },
+    {
+      "clientId": "logistica-web",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "email",
+        "roles"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audiencia-logistica",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "logistica-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "logistica-cli",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
+      "attributes": {},
+      "defaultClientScopes": [
+        "basic",
+        "profile",
+        "email",
+        "roles"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audiencia-logistica",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "logistica-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "50000000-0000-4000-8000-000000000001",
+      "username": "despachador@grupo5.cl",
+      "email": "despachador@grupo5.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "despachador",
+      "lastName": "Grupo5",
+      "requiredActions": [],
+      "realmRoles": [
+        "despachador"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Grupo5Demo!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000002",
+      "username": "repartidor1@grupo5.cl",
+      "email": "repartidor1@grupo5.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "repartidor1",
+      "lastName": "Grupo5",
+      "requiredActions": [],
+      "realmRoles": [
+        "repartidor"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Grupo5Demo!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000003",
+      "username": "repartidor2@grupo5.cl",
+      "email": "repartidor2@grupo5.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "repartidor2",
+      "lastName": "Grupo5",
+      "requiredActions": [],
+      "realmRoles": [
+        "repartidor"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Grupo5Demo!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000004",
+      "username": "cliente1@grupo5.cl",
+      "email": "cliente1@grupo5.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "cliente1",
+      "lastName": "Grupo5",
+      "requiredActions": [],
+      "realmRoles": [
+        "cliente"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Grupo5Demo!",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "50000000-0000-4000-8000-000000000005",
+      "username": "cliente2@grupo5.cl",
+      "email": "cliente2@grupo5.cl",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "cliente2",
+      "lastName": "Grupo5",
+      "requiredActions": [],
+      "realmRoles": [
+        "cliente"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Grupo5Demo!",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

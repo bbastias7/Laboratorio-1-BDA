@@ -5,11 +5,13 @@ import com.example.demo.services.VehiculoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@PreAuthorize("hasRole('DESPACHADOR')")
 @RequestMapping("/api/vehiculos")
 @RequiredArgsConstructor
 public class VehiculoController {
@@ -30,7 +32,7 @@ public class VehiculoController {
 
 
     @PostMapping
-    public ResponseEntity<VehiculoEntity> saveVehiculo(@RequestBody VehiculoEntity vehiculo) {
+    public ResponseEntity<VehiculoEntity> saveVehiculo(@jakarta.validation.Valid @RequestBody VehiculoEntity vehiculo) {
         VehiculoEntity nuevoVehiculo = vehiculoService.saveVehiculo(vehiculo);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoVehiculo);
     }
@@ -39,7 +41,7 @@ public class VehiculoController {
     @PutMapping("/{id}")
     public ResponseEntity<VehiculoEntity> updateVehiculo(
             @PathVariable Integer id,
-            @RequestBody VehiculoEntity vehiculo) {
+            @jakarta.validation.Valid @RequestBody VehiculoEntity vehiculo) {
         VehiculoEntity vehiculoActualizado = vehiculoService.updateVehiculo(id, vehiculo);
         return ResponseEntity.ok(vehiculoActualizado);
     }

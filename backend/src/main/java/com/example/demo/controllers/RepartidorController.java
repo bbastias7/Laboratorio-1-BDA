@@ -1,53 +1,68 @@
 package com.example.demo.controllers;
+import com.example.demo.dto.Dtos.EntregaView;
+import com.example.demo.config.AuthUser;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.example.demo.entities.RepartidorEntity;
 import com.example.demo.services.RepartidorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/repartidor")
+@PreAuthorize("hasRole('DESPACHADOR')")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class RepartidorController {
     private final RepartidorService repartidorService;
 
 
-    @GetMapping
+    @GetMapping("/repartidor")
     public ResponseEntity<List<RepartidorEntity>> findAll() {
         return ResponseEntity.ok(repartidorService.findAll());
     }
 
 
-    @GetMapping("/{id}")
+    @GetMapping("/repartidor/{id}")
     public ResponseEntity<RepartidorEntity> findById(@PathVariable Integer id) {
         return ResponseEntity.ok(repartidorService.findById(id));
     }
 
 
-    @PostMapping
-    public ResponseEntity<RepartidorEntity> saveRepartidor(@RequestBody RepartidorEntity repartidor) {
+    @PostMapping("/repartidor")
+    public ResponseEntity<RepartidorEntity> saveRepartidor(@jakarta.validation.Valid @RequestBody RepartidorEntity repartidor) {
         RepartidorEntity nuevoRepartidor =  repartidorService.saveRepartidor(repartidor);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoRepartidor);
     }
 
 
-    @PutMapping("/{id}")
+    @PutMapping("/repartidor/{id}")
     public ResponseEntity<RepartidorEntity> updateRepartidor(
             @PathVariable Integer id,
-            @RequestBody RepartidorEntity repartidor
+            @jakarta.validation.Valid @RequestBody RepartidorEntity repartidor
     ) {
         RepartidorEntity repartidorActualizado = repartidorService.updateRepartidor(id, repartidor);
         return ResponseEntity.ok(repartidorActualizado);
     }
 
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/repartidor/{id}")
     public ResponseEntity<RepartidorEntity> deleteRepartidor(@PathVariable Integer id) {
         repartidorService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/entregas")
+    @PreAuthorize("hasRole('REPARTIDOR')")
+    public ResponseEntity<List<EntregaView>> entregas(
+            @RequestParam(defaultValue="false") boolean soloPendientes,
+            @AuthenticationPrincipal
+            Jwt jwt) {
+        return ResponseEntity.ok(repartidorService.listarEntregas(
+                AuthUser.from(jwt), soloPendientes));
     }
 }

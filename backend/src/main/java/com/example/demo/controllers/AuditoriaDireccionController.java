@@ -5,11 +5,13 @@ import com.example.demo.services.AuditoriaDireccionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@PreAuthorize("hasRole('DESPACHADOR')")
 @RequestMapping("/api/auditoria")
 @RequiredArgsConstructor
 public class AuditoriaDireccionController {
@@ -29,7 +31,7 @@ public class AuditoriaDireccionController {
 
 
     @PostMapping
-    public ResponseEntity<AuditoriaDireccionEntity> saveAuditoriaDireccion(@RequestBody AuditoriaDireccionEntity auditoriaDireccionEntity) {
+    public ResponseEntity<AuditoriaDireccionEntity> saveAuditoriaDireccion(@jakarta.validation.Valid @RequestBody AuditoriaDireccionEntity auditoriaDireccionEntity) {
         AuditoriaDireccionEntity nuevaAuditoria = auditoriaDireccionService.saveAuditoriaDireccion(auditoriaDireccionEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaAuditoria);
     }
@@ -38,7 +40,7 @@ public class AuditoriaDireccionController {
     @PutMapping("/{id}")
     public ResponseEntity<AuditoriaDireccionEntity> updateAuditoriaDireccion(
             @PathVariable Integer id,
-            @RequestBody AuditoriaDireccionEntity auditoriaDireccionEntity
+            @jakarta.validation.Valid @RequestBody AuditoriaDireccionEntity auditoriaDireccionEntity
     ) {
         auditoriaDireccionEntity.setAuditoriaId(id);
         AuditoriaDireccionEntity auditoriaActualizada = auditoriaDireccionService.updateAuditoriaDireccion(auditoriaDireccionEntity);

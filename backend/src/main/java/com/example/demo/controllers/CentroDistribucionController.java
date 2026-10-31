@@ -5,6 +5,7 @@ import com.example.demo.services.CentroDistribucionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,23 +29,25 @@ public class    CentroDistribucionController {
     }
 
 
+    @PreAuthorize("hasRole('DESPACHADOR')")
     @PostMapping
-    public ResponseEntity<CentroDistribucionEntity> saveCentroDistribucion(@RequestBody CentroDistribucionEntity centroDistribucionEntity) {
+    public ResponseEntity<CentroDistribucionEntity> saveCentroDistribucion(@jakarta.validation.Valid @RequestBody CentroDistribucionEntity centroDistribucionEntity) {
         CentroDistribucionEntity nuevoCentro =  centroDistribucionService.saveCentroDistribucion(centroDistribucionEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCentro);
     }
 
 
+    @PreAuthorize("hasRole('DESPACHADOR')")
     @PutMapping("/{id}")
     public ResponseEntity<CentroDistribucionEntity> updateCentroDistribucion(
             @PathVariable Integer id,
-            @RequestBody CentroDistribucionEntity centroDistribucionEntity
+            @jakarta.validation.Valid @RequestBody CentroDistribucionEntity centroDistribucionEntity
     ) {
-        centroDistribucionService.updateCentroDistribucion(id, centroDistribucionEntity);
-        return ResponseEntity.ok(centroDistribucionEntity);
+        return ResponseEntity.ok(centroDistribucionService.updateCentroDistribucion(id, centroDistribucionEntity));
     }
 
 
+    @PreAuthorize("hasRole('DESPACHADOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<CentroDistribucionEntity> deleteCentroDistribucion(@PathVariable Integer id) {
         centroDistribucionService.deleteById(id);

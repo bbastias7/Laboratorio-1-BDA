@@ -5,11 +5,13 @@ import com.example.demo.services.EventoSeguimientoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@PreAuthorize("hasRole('DESPACHADOR')")
 @RequestMapping("/api/eventoseguimiento")
 @RequiredArgsConstructor
 public class EventoSeguimientoController {
@@ -29,7 +31,7 @@ public class EventoSeguimientoController {
 
 
     @PostMapping
-    public ResponseEntity<EventoSeguimientoEntity> saveEventoSeguimiento(@RequestBody EventoSeguimientoEntity eventoSeguimientoEntity) {
+    public ResponseEntity<EventoSeguimientoEntity> saveEventoSeguimiento(@jakarta.validation.Valid @RequestBody EventoSeguimientoEntity eventoSeguimientoEntity) {
         EventoSeguimientoEntity nuevoEvento = eventoSeguimientoService.save(eventoSeguimientoEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoEvento);
     }
@@ -38,7 +40,7 @@ public class EventoSeguimientoController {
     @PutMapping("/{id}")
     public ResponseEntity<EventoSeguimientoEntity> updateEventoSeguimiento(
             @PathVariable Integer id,
-            @RequestBody EventoSeguimientoEntity eventoSeguimientoEntity
+            @jakarta.validation.Valid @RequestBody EventoSeguimientoEntity eventoSeguimientoEntity
     ) {
         eventoSeguimientoEntity.setEventoId(id);
         EventoSeguimientoEntity eventoActualizado = eventoSeguimientoService.update(eventoSeguimientoEntity);

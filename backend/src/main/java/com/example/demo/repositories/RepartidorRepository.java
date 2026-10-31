@@ -71,10 +71,11 @@ public class RepartidorRepository {
     }
 
     public int update(RepartidorEntity repartidor) {
-        String sql = "UPDATE repartidor SET centro_id = ? WHERE id = ?";
+        String sql = "UPDATE repartidor SET centro_id = ?, usuario_id = ? WHERE id = ?";
         return jdbcTemplate.update(
                 sql,
                 repartidor.getCentroDistId(),
+                repartidor.getUsuarioId(),
                 repartidor.getRepartidorId()
         );
     }

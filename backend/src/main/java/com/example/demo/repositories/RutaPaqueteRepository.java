@@ -1,6 +1,7 @@
 package com.example.demo.repositories;
 
 import com.example.demo.entities.RutaPaqueteEntity;
+import com.example.demo.dto.Dtos.EntregaView;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,6 +16,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RutaPaqueteRepository {
     private final JdbcTemplate jdbcTemplate;
+    public void agregar(Integer ruta, Integer paquete) {
+        jdbcTemplate.update("CALL agregar_paquete_ruta(?,?)", ruta, paquete);
+    }
+    public void quitar(Integer ruta, Integer paquete) {
+        jdbcTemplate.update("CALL quitar_paquete_ruta(?,?)", ruta, paquete);
+    }
     private final RowMapper<RutaPaqueteEntity> rutaPaqueteEntityRowMapper = (rs, rowNum) -> new RutaPaqueteEntity(
             rs.getInt("ruta_id"),
             rs.getInt("paquete_id"),
@@ -97,4 +104,16 @@ public class RutaPaqueteRepository {
     }
 
 
-}
+    public List<EntregaView> listarDeUsuario(Integer usuarioId, boolean soloPendientes) {
+        String sql = "SELECT r.id AS ruta_id, r.fecha, p.id AS paquete_id, p.codigo, p.direccion_destino, p.estado, " +
+                "rp.resultado, p.intentos, p.fecha_compromiso " +
+                "FROM ruta_paquete rp JOIN ruta r ON r.id = rp.ruta_id " +
+                "JOIN repartidor rep ON rep.id = r.repartidor_id JOIN paquete p ON p.id = rp.paquete_id " +
+                "WHERE rep.usuario_id = ? " + (soloPendientes ? "AND rp.resultado = 'Pendiente' " : "") +
+                "ORDER BY r.fecha DESC, r.id DESC, p.id";
+        return jdbcTemplate.query(sql, (rs, i) -> new EntregaView(
+                rs.getInt("ruta_id"), rs.getObject("fecha", LocalDateTime.class), rs.getInt("paquete_id"),
+                rs.getString("codigo"), rs.getString("direccion_destino"), rs.getString("estado"),
+                rs.getString("resultado"), rs.getInt("intentos"),
+                rs.getObject("fecha_compromiso", LocalDateTime.class)), usuarioId);
+    }}

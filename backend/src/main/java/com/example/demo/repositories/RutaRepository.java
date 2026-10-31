@@ -44,6 +44,44 @@ public class RutaRepository {
                 rutaEntityRowMapper, repartidorId);
     }
 
+    public List<RutaEntity> findByUsuarioRepartidor(Integer usuarioId) {
+        return jdbcTemplate.query(RUTA_SELECT + " WHERE repartidor_id IN (SELECT id FROM repartidor WHERE usuario_id = ?) " +
+                "ORDER BY fecha DESC, id DESC", rutaEntityRowMapper, usuarioId);
+    }
+
+    /** True when the route belongs to the repartidor whose usuario_id is {@code usuarioId}. */
+    public boolean esDeUsuario(Integer rutaId, Integer usuarioId) {
+        Boolean ok = jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM ruta r JOIN repartidor rep ON rep.id = r.repartidor_id " +
+                        "WHERE r.id = ? AND rep.usuario_id = ?)", Boolean.class, rutaId, usuarioId);
+        return Boolean.TRUE.equals(ok);
+    }
+
+    /** CALL asignar_ruta(..., INOUT p_ruta_id): the INOUT value comes back as a one-row result set. */
+    public int asignarRuta(int centroId, int repartidorId, int vehiculoId, LocalDateTime fecha, List<Integer> paqueteIds) {
+        Integer id = jdbcTemplate.execute((java.sql.Connection con) -> {
+            java.sql.Array ids = con.createArrayOf("integer", paqueteIds.toArray(new Integer[0]));
+            try (java.sql.PreparedStatement ps = con.prepareStatement("CALL asignar_ruta(?, ?, ?, ?, ?, ?)")) {
+                ps.setInt(1, centroId);
+                ps.setInt(2, repartidorId);
+                ps.setInt(3, vehiculoId);
+                ps.setObject(4, fecha);
+                ps.setArray(5, ids);
+                ps.setNull(6, java.sql.Types.INTEGER);
+                try (java.sql.ResultSet rs = ps.executeQuery()) {
+                    rs.next();
+                    return rs.getInt(1);
+                }
+            } finally {
+                ids.free();
+            }
+        });
+        if (id == null) {
+            throw new IllegalStateException("asignar_ruta no devolvió el ID de la ruta");
+        }
+        return id;
+    }
+
     public RutaEntity save(RutaEntity rutaEntity) {
         Integer generatedId = jdbcTemplate.queryForObject(
                 "INSERT INTO ruta (centro_id, repartidor_id, vehiculo_id, fecha) VALUES (?, ?, ?, ?) RETURNING id",

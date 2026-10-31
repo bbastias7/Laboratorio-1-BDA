@@ -4,6 +4,7 @@ import com.example.demo.entities.AuditoriaDireccionEntity;
 import com.example.demo.repositories.AuditoriaDireccionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -25,14 +26,16 @@ public class AuditoriaDireccionService {
     }
 
 
+    @Transactional
     public AuditoriaDireccionEntity saveAuditoriaDireccion(AuditoriaDireccionEntity auditoriaDireccionEntity) {
-        if(auditoriaDireccionRepository.findById(auditoriaDireccionEntity.getAuditoriaId()).isPresent()) {
+        if(auditoriaDireccionEntity.getAuditoriaId() != null && auditoriaDireccionRepository.findById(auditoriaDireccionEntity.getAuditoriaId()).isPresent()) {
             throw new NoSuchElementException("No se encontro el registro");
         }
         return auditoriaDireccionRepository.save(auditoriaDireccionEntity);
     }
 
 
+    @Transactional
     public AuditoriaDireccionEntity updateAuditoriaDireccion(AuditoriaDireccionEntity auditoriaDireccionEntity) {
         AuditoriaDireccionEntity auditoriaExistente = findById(auditoriaDireccionEntity.getAuditoriaId());
         auditoriaExistente.setPaqueteId(auditoriaDireccionEntity.getPaqueteId());
@@ -48,6 +51,7 @@ public class AuditoriaDireccionService {
     }
 
 
+    @Transactional
     public void deleteById(Integer id) {
         int filasAfectadas = auditoriaDireccionRepository.deleteById(id);
         if(filasAfectadas == 0) {

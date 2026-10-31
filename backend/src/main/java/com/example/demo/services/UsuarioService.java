@@ -4,6 +4,7 @@ import com.example.demo.entities.UsuarioEntity;
 import com.example.demo.repositories.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -41,6 +42,7 @@ public class UsuarioService {
     }
 
 
+    @Transactional
     public UsuarioEntity saveUsuario(UsuarioEntity usuario) {
         usuarioRepository.findByEmail(usuario.getEmail()).ifPresent(u -> {
             throw new IllegalArgumentException("El email ya se encuentra registrado");
@@ -50,11 +52,14 @@ public class UsuarioService {
     }
 
 
+    @Transactional
     public UsuarioEntity updateUsuario(Integer id, UsuarioEntity usuarioDetalles) {
         UsuarioEntity usuarioExistente = findById(id);
         usuarioExistente.setNombre(usuarioDetalles.getNombre());
         usuarioExistente.setEmail(usuarioDetalles.getEmail());
         usuarioExistente.setRol(usuarioDetalles.getRol());
+        if (usuarioDetalles.getKeycloakId() != null && !usuarioDetalles.getKeycloakId().equals(usuarioExistente.getKeycloakId()))
+            throw new IllegalArgumentException("keycloakId es inmutable");
         int filasAfectadas = usuarioRepository.update(usuarioExistente);
         if (filasAfectadas == 0) {
             throw new IllegalStateException("No se pudo actualizar el usuario");
@@ -63,6 +68,7 @@ public class UsuarioService {
     }
 
 
+    @Transactional
     public void deleteById(Integer id) {
         int filasAfectadas = usuarioRepository.deleteById(id);
         if (filasAfectadas == 0) {
