@@ -130,6 +130,9 @@ def run():
     rid = assign(ok["paqueteId"])["rutaId"]
     request("PATCH", f'/api/paquete/{ok["paqueteId"]}/entregado', {"rutaId": rid}, r1)
     request("PATCH", f'/api/paquete/{ok["paqueteId"]}/entregado', {"rutaId": rid}, r1, 409)
+    # El destino de un paquete en estado final no se modifica.
+    request("PATCH", f'/api/paquete/{ok["paqueteId"]}/direccion', {"direccionDestino": "Tras entrega"}, c1, 409)
+    request("PATCH", f"/api/paquete/{pid}/direccion", {"direccionDestino": "Tras retorno"}, c1, 409)
     # CRUD de centros, vehículos y perfiles sin referencias históricas.
     tag = uuid.uuid4().hex[:8]
     c = request("POST", "/api/centrodistribucion", {"nombre": tag, "direccion": "A", "ciudad": "Santiago"}, admin, 201)
@@ -169,11 +172,12 @@ def run():
     request("PUT", f'/api/eventoseguimiento/{event["eventoId"]}', event, admin)
     assert request("GET", f'/api/eventoseguimiento/{event["eventoId"]}', token=admin)["descripcion"] == "Corrección"
     request("DELETE", f'/api/eventoseguimiento/{event["eventoId"]}', token=admin, status=204)
-    a = request("POST", "/api/auditoria", {"paqueteId": pid, "direccionAnterior": "A", "direccionNueva": "B"}, admin, 201)
-    a["direccionNueva"] = "C"
-    request("PUT", f'/api/auditoria/{a["auditoriaId"]}', a, admin)
-    assert request("GET", f'/api/auditoria/{a["auditoriaId"]}', token=admin)["direccionNueva"] == "C"
-    request("DELETE", f'/api/auditoria/{a["auditoriaId"]}', token=admin, status=204)
+    # La auditoría es solo lectura: no hay POST/PUT/DELETE y la fila no cambia.
+    aid = audits[0]["auditoriaId"]
+    request("POST", "/api/auditoria", {"paqueteId": pid, "direccionAnterior": "A", "direccionNueva": "B"}, admin, 405)
+    request("PUT", f"/api/auditoria/{aid}", audits[0], admin, 405)
+    request("DELETE", f"/api/auditoria/{aid}", token=admin, status=405)
+    assert request("GET", f"/api/auditoria/{aid}", token=admin) == audits[0]
     # PUT de la asociación utiliza el procedimiento y no permite reabrir historial.
     rid = assign(pid)["rutaId"]
     request("PUT", f"/api/rutapaquete/{rid}/{pid}", {"resultado": "Entregado"}, admin)

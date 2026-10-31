@@ -57,6 +57,7 @@ public class ReporteRepository {
     }
 
     public void refresh() {
-        jdbcTemplate.execute("REFRESH MATERIALIZED VIEW mv_rendimiento_entregas");
+        // The refresh logic lives in the database (see 02-materialViews.sql).
+        jdbcTemplate.execute("SELECT refrescar_mv_rendimiento()");
     }
 }

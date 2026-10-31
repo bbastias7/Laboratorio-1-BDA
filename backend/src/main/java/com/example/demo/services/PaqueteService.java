@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -98,12 +99,20 @@ public class PaqueteService {
         if (!u.esCliente() && !u.esDespachador()) {
             throw new AccessDeniedException("Rol no autorizado");
         }
+        exigirDestinoModificable(p);
         paqueteRepository.setAppUser(u.uid());
         paqueteRepository.updateDireccion(id, direccion);
         p.setDireccionDestino(direccion);
         return p;
     }
 
+
+    /** Delivered and returned packages keep their destination; the DB trigger enforces it too. */
+    private static void exigirDestinoModificable(PaqueteEntity p) {
+        if ("Entregado".equals(p.getEstado()) || "Devuelto a origen".equals(p.getEstado())) {
+            throw new IllegalStateException("No se puede cambiar el destino de un paquete en estado final");
+        }
+    }
 
     @Transactional
     public PaqueteEntity updatePaquete(PaqueteEntity paqueteEntity, AuthUser actor) {
@@ -121,6 +130,9 @@ public class PaqueteService {
         }
         paqueteExistente.setPeso(paqueteEntity.getPeso());
         paqueteExistente.setVolumen(paqueteEntity.getVolumen());
+        if (!Objects.equals(paqueteExistente.getDireccionDestino(), paqueteEntity.getDireccionDestino())) {
+            exigirDestinoModificable(paqueteExistente);
+        }
         paqueteExistente.setDireccionDestino(paqueteEntity.getDireccionDestino());
         paqueteExistente.setFechaCompromiso(paqueteEntity.getFechaCompromiso());
         paqueteExistente.setUsuarioClienteId(paqueteEntity.getUsuarioClienteId());

@@ -64,10 +64,13 @@ def run():
             if delivery.poll() is not None or time.monotonic() > deadline:
                 raise AssertionError("No se pudo sincronizar la entrega concurrente")
             time.sleep(0.05)
-        result = request("PUT", f"/api/paquete/{pid}", payload, admin)
+        # El PUT espera el bloqueo; al confirmarse la entrega el destino ya no es modificable.
+        request("PUT", f"/api/paquete/{pid}", payload, admin, 409)
         _, errors = delivery.communicate(timeout=10)
         assert delivery.returncode == 0, errors.decode(errors="replace")
+        result = request("GET", f"/api/paquete/{pid}", token=admin)
         assert result["estado"] == "Entregado" and result["entregadoAt"], result
+        assert result["direccionDestino"] == "Prueba concurrente", result
         assignment = request("GET", f"/api/rutapaquete/{rid}/{pid}", token=admin)
         assert assignment["resultado"] == "Entregado"
     finally:

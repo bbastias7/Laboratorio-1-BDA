@@ -42,45 +42,4 @@ public class AuditoriaDireccionRepository {
             return Optional.empty();
         }
     }
-
-    public AuditoriaDireccionEntity save(AuditoriaDireccionEntity auditoriaDireccion) {
-        if (auditoriaDireccion.getFecha() == null) {
-            auditoriaDireccion.setFecha(LocalDateTime.now());
-        }
-        Integer generatedId = jdbcTemplate.queryForObject(
-                "INSERT INTO auditoria_direccion (paquete_id, usuario_id, direccion_anterior, direccion_nueva, fecha) VALUES (?, ?, ?, ?, ?) RETURNING id",
-                Integer.class,
-                auditoriaDireccion.getPaqueteId(),
-                auditoriaDireccion.getUsuarioId(),
-                auditoriaDireccion.getDireccionAnterior(),
-                auditoriaDireccion.getDireccionNueva(),
-                auditoriaDireccion.getFecha()
-        );
-        if (generatedId == null) {
-            throw new IllegalStateException("La inserción no devolvió el ID de la auditoría de dirección");
-        }
-        auditoriaDireccion.setAuditoriaId(generatedId);
-        return auditoriaDireccion;
-
-    }
-
-    public int update(AuditoriaDireccionEntity auditoriaDireccion) {
-        return jdbcTemplate.update(
-                "UPDATE auditoria_direccion SET paquete_id = ?, usuario_id = ?, direccion_anterior = ?, direccion_nueva = ?, fecha = ? WHERE id = ?",
-                auditoriaDireccion.getPaqueteId(),
-                auditoriaDireccion.getUsuarioId(),
-                auditoriaDireccion.getDireccionAnterior(),
-                auditoriaDireccion.getDireccionNueva(),
-                auditoriaDireccion.getFecha(),
-                auditoriaDireccion.getAuditoriaId()
-        );
-    }
-
-    public int deleteById(Integer id) {
-        return jdbcTemplate.update(
-                "DELETE FROM auditoria_direccion WHERE id = ?",
-                id
-        );
-    }
-
 }
