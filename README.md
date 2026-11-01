@@ -1,13 +1,13 @@
 # Plataforma de Logística y Seguimiento de Envíos (Grupo 5)
 
-API REST para gestionar la logística de última milla: centros de distribución, paquetes, vehículos, repartidores, rutas de reparto y eventos de seguimiento. Un cliente registra paquetes y consulta su seguimiento, un despachador asigna rutas y controla el desempeño, y un repartidor registra entregas exitosas o fallidas. Las reglas de negocio críticas (capacidad de vehículos, reintentos de entrega, auditoría de cambios de destino) se aplican en la base de datos con procedimientos almacenados y triggers.
+Aplicación web y API REST para gestionar la logística de última milla: centros de distribución, paquetes, vehículos, repartidores, rutas de reparto y eventos de seguimiento. Un cliente registra paquetes y consulta su seguimiento, un despachador asigna rutas y controla el desempeño, y un repartidor registra entregas exitosas o fallidas. Las reglas de negocio críticas (capacidad de vehículos, reintentos de entrega, auditoría de cambios de destino) se aplican en la base de datos con procedimientos almacenados y triggers.
 
 ## Arquitectura y tecnologías
 
 ```
-Cliente web / curl
-        |  HTTP + JWT (Bearer)
-        v
+Frontend React (Vite, :5173) / curl
+        |  HTTP + JWT (Bearer)        ^ login (código + PKCE)
+        v                             |
 +-----------------------------------------------+        +------------------+
 | Backend Spring Boot 4.1.1 (Java 21)           |  JWKS  | Keycloak 26      |
 | controllers -> services -> repositories       |<------>| realm logistica-g5|
@@ -19,6 +19,7 @@ Cliente web / curl
    tablas, procedimientos, triggers, vista materializada
 ```
 
+- Frontend: React 18 + Vite + React Router, `keycloak-js` (flujo de código con PKCE, cliente `logistica-web`) y GSAP para la animación del seguimiento. Un solo diseño responsive con modo claro y oscuro para los tres roles.
 - Backend: Spring Boot 4.1.1, Java 21, Spring JDBC (`JdbcTemplate`), Bean Validation, Lombok.
 - Seguridad: Spring Security como Resource Server OAuth2. Valida los JWT de Keycloak (firma por JWKS, `issuer` y audiencia `logistica-api`). El `sub` del token se vincula a `usuario.keycloak_id` y el rol del token debe coincidir con el rol del perfil local.
 - Base de datos: PostgreSQL.
@@ -31,9 +32,10 @@ Estructura del repositorio:
 | `backend/` | Código fuente Spring Boot, `mvnw`, `pom.xml` y `tests/` (pruebas de reglas e integración) |
 | `database/` | Scripts SQL por etapas (`01` esquema, `02` vista materializada, `03` procedimientos, `04` triggers, `05` datos iniciales) |
 | `createDatabase.sql` | Instalación completa: equivale a `database/01` a `05` en una sola transacción |
+| `frontend/` | Aplicación web React + Vite (`src/`, `design/` con el sistema de diseño, `tokens/`, `.env.example`) |
 | `keycloak/` | Export del realm (`logistica-g5-realm.json`) y script para Windows (`start-keycloak.ps1`) |
 
-El frontend no forma parte de este repositorio. La API permite el origen del cliente web mediante la variable `CORS_ORIGINS` (por defecto `http://localhost:5173`).
+La API permite el origen del frontend mediante la variable `CORS_ORIGINS` (por defecto `http://localhost:5173`).
 
 ## Requisitos previos
 
@@ -44,9 +46,10 @@ El frontend no forma parte de este repositorio. La API permite el origen del cli
 | Docker | Cualquier versión reciente | Keycloak y, opcionalmente, PostgreSQL |
 | `psql` | Cliente de PostgreSQL | Cargar el script (no es necesario si PostgreSQL corre en Docker; ver paso 3) |
 | `curl` | Cualquiera | Verificación rápida |
+| Node.js | 18, 20 o 22 y superiores (el campo `engines` de Vite 6 exige `^18 || ^20 || >=22`); verificado con 25 | Ejecutar y compilar el frontend (incluye `npm`) |
 | Python 3 | 3.8 o superior | Solo para las pruebas `backend/tests/verify_api.py` y `concurrencia.py` |
 
-Puertos usados por defecto: PostgreSQL 5432, backend 8080, Keycloak 8081.
+Puertos usados por defecto: PostgreSQL 5432, backend 8080, Keycloak 8081, frontend 5173.
 
 ## Manual de instalación y despliegue
 
@@ -187,7 +190,40 @@ java -jar target/demo-0.0.1-SNAPSHOT.jar
 
 La API queda disponible en `http://localhost:8080` (o el valor de `SERVER_PORT`). La primera ejecución descarga dependencias de Maven y puede tardar algunos minutos.
 
-### 7. Verificación rápida
+### 7. Instalar y ejecutar el frontend
+
+Requiere Node.js (ver requisitos), Keycloak y el backend en ejecución. Desde la raíz del repositorio:
+
+```bash
+cd frontend
+npm install            # o `npm ci` para instalar exactamente lo fijado en package-lock.json
+cp .env.example .env   # en PowerShell: Copy-Item .env.example .env
+npm run dev
+```
+
+Abra `http://localhost:5173`. El puerto 5173 es obligatorio: el cliente `logistica-web` del realm solo acepta `http://localhost:5173/*` como URI de redirección y origen web, y `CORS_ORIGINS` del backend lo permite por defecto. Vite está configurado con `strictPort`, de modo que falla si el puerto está ocupado en lugar de usar otro.
+
+Variables de `.env` (todas opcionales; los valores por defecto sirven para los pasos anteriores):
+
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:8080` | URL base del backend (sin `/api`) |
+| `VITE_KEYCLOAK_URL` | `http://localhost:8081` | URL de Keycloak |
+| `VITE_KEYCLOAK_REALM` | `logistica-g5` | Realm |
+| `VITE_KEYCLOAK_CLIENT` | `logistica-web` | Cliente público del realm para el frontend |
+
+Si cambió los puertos del backend o de Keycloak (por ejemplo `SERVER_PORT=58080`), ajuste `VITE_API_URL` y `VITE_KEYCLOAK_URL`; el `issuer` de Keycloak debe seguir coincidiendo con `KEYCLOAK_ISSUER` (paso 4). Las variables `VITE_*` se leen al iniciar `npm run dev` o `npm run build`: reinicie el comando después de cambiarlas.
+
+Versión de producción (también en el puerto 5173):
+
+```bash
+npm run build          # genera frontend/dist
+npm run preview        # sirve dist en http://localhost:5173
+```
+
+`dist/` es estático y puede servirse con cualquier servidor web, siempre desde el origen `http://localhost:5173` mientras el realm no se modifique. La pantalla de inicio de sesión es la página de Keycloak (en inglés, sin tema propio).
+
+### 8. Verificación rápida
 
 Sin token, la API rechaza la solicitud:
 
@@ -214,6 +250,18 @@ Respuesta esperada:
 ```
 
 Si obtiene 401 con un token válido, revise que `KEYCLOAK_ISSUER` sea idéntico al `issuer` del token. Si obtiene 403 al pedir el token o `HTTPS required`, vea la solución de problemas del paso 4.
+
+## Uso del frontend
+
+Al abrir `http://localhost:5173` se ve la página de inicio con el campo de código. «Ingresar» lleva a la página de inicio de sesión de Keycloak (el usuario es el correo completo, por ejemplo `cliente1@grupo5.cl`); al volver, cada rol llega a su pantalla inicial. Los envíos nuevos tienen un código `G5-` seguido de 32 caracteres hexadecimales; en pantalla se muestra abreviado en las listas y agrupado en bloques de cuatro en los detalles. El código real es el que se copia y se envía a la API, y el campo de seguimiento acepta códigos pegados con o sin espacios.
+
+| Usuario de prueba | Qué puede hacer |
+|---|---|
+| `cliente1@grupo5.cl`, `cliente2@grupo5.cl` | Ver sus envíos, crear un envío y copiar su código, cambiar la dirección de destino (bloqueado en estados finales) y rastrear sus propios paquetes |
+| `repartidor1@grupo5.cl`, `repartidor2@grupo5.cl` | Ver sus entregas agrupadas por ruta, marcar una entrega como realizada o registrar una entrega fallida (con motivo), y ver sus rutas |
+| `despachador@grupo5.cl` | Panel de operación, asignar una ruta con control de capacidad, mantenedores de usuarios, centros, vehículos, repartidores, rutas, asignaciones, eventos y paquetes, auditoría de solo lectura, y reportes de rendimiento con alertas bajo el umbral y refresco de la vista materializada |
+
+Cualquier rol puede rastrear un envío por código en «Rastrear». Un cliente que abre una pantalla de otro rol ve el aviso «No tienes acceso a esta sección». Las cifras de rendimiento provienen de una vista materializada que se refresca cada día a las 03:00 o desde «Refrescar vista»; la API no informa la fecha del último refresco.
 
 ## Usuarios de prueba
 
@@ -275,7 +323,7 @@ URL base: `http://localhost:8080/api`. Todas las rutas requieren el encabezado `
 
 ### Ejemplos
 
-Las respuestas siguientes provienen de una ejecución real con los datos de `createDatabase.sql`; los identificadores y códigos varían. Se asume `TOKEN` obtenido como en el paso 7. Cada ejemplo indica el usuario que debe autenticarse.
+Las respuestas siguientes provienen de una ejecución real con los datos de `createDatabase.sql`; los identificadores y códigos varían. Se asume `TOKEN` obtenido como en el paso 8. Cada ejemplo indica el usuario que debe autenticarse.
 
 **Registrar un paquete** (`cliente1@grupo5.cl`):
 
