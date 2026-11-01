@@ -7,8 +7,8 @@ import { Alert } from '../../components/ui/Alert.jsx';
 import { Button, LinkButton } from '../../components/ui/Button.jsx';
 import { Field, Select, TextInput } from '../../components/ui/Field.jsx';
 import { ErrorState, Loading, errorKind } from '../../components/ui/States.jsx';
-import { CopyCodeButton } from '../../components/tracking/CopyCodeButton.jsx';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { CopyCodeButton } from '../../components/shipment/CopyCodeButton.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 import { explainError } from '../../lib/serverMessages.js';
 import { isoDateFromToday, parseDecimal, positiveDecimalError } from '../../lib/numbers.js';
 import { formatDate } from '../../lib/format.js';
@@ -85,7 +85,7 @@ export function ClienteNuevo() {
           <h2 id="created-title" className="sr-only">Código de seguimiento generado</h2>
           <div ref={resultRef} tabIndex={-1} className="focus-target" aria-live="polite">
             <p className="eyebrow">Código de seguimiento</p>
-            <p className="created-code"><TrackingCode code={created.codigo} variant="full" /></p>
+            <p className="created-code"><ShipmentCode code={created.codigo} variant="full" /></p>
           </div>
           <p>
             Guarda este código: con él puedes revisar por dónde va tu paquete. Compromiso de entrega:{' '}

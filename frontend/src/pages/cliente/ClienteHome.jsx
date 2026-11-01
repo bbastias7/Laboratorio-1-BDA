@@ -11,7 +11,7 @@ import { DataTable } from '../../components/ui/DataTable.jsx';
 import { StatusBadge, ESTADOS } from '../../components/ui/StatusBadge.jsx';
 import { EmptyState, ErrorState, Loading, errorKind } from '../../components/ui/States.jsx';
 import { formatDate } from '../../lib/format.js';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 
 /** Mis envíos: the client's own packages (the API already scopes GET /api/paquete to the caller). */
 export function ClienteHome() {
@@ -31,7 +31,7 @@ export function ClienteHome() {
   const columns = [
     {
       key: 'codigo', header: 'Código', mono: true, primary: true,
-      render: (p) => <Link to={`/cliente/envios/${p.paqueteId}`}><TrackingCode code={p.codigo} /></Link>,
+      render: (p) => <Link to={`/cliente/envios/${p.paqueteId}`}><ShipmentCode code={p.codigo} /></Link>,
     },
     { key: 'estado', header: 'Estado', render: (p) => <StatusBadge estado={p.estado} /> },
     { key: 'direccionDestino', header: 'Destino' },

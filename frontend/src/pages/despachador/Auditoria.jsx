@@ -5,7 +5,7 @@ import { PageHeader } from '../../components/layout/PageHeader.jsx';
 import { Icon } from '../../components/Icon.jsx';
 import { DataTable } from '../../components/ui/DataTable.jsx';
 import { EmptyState, ErrorState, Loading, errorKind } from '../../components/ui/States.jsx';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 import { formatDateTime } from '../../lib/format.js';
 
 /** Read-only log of destination changes made after dispatch (GET /api/auditoria). */
@@ -22,7 +22,7 @@ export function Auditoria() {
 
   const columns = data && [
     { key: 'fecha', header: 'Fecha', mono: true, primary: true, render: (a) => formatDateTime(a.fecha) },
-    { key: 'paqueteId', header: 'Paquete', mono: true, render: (a) => (data.codigos[a.paqueteId] ? <TrackingCode code={data.codigos[a.paqueteId]} /> : `Paquete ${a.paqueteId}`) },
+    { key: 'paqueteId', header: 'Paquete', mono: true, render: (a) => (data.codigos[a.paqueteId] ? <ShipmentCode code={data.codigos[a.paqueteId]} /> : `Paquete ${a.paqueteId}`) },
     {
       key: 'cambio', header: 'Dirección anterior → nueva',
       render: (a) => (

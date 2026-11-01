@@ -168,8 +168,8 @@ Everything else is CSS transitions on colour and opacity. `prefers-reduced-motio
 | Loading / EmptyState / ErrorState | `src/components/ui/States.jsx` | done |
 | Toast provider and `useToast` | `src/components/ui/Toast.jsx` | done |
 | Layout (header, role nav, skip link, theme toggle) | `src/components/layout/` | done |
-| TrackingTimeline + PackageHeader | `src/components/tracking/` | done |
-| TrackingCode (short / grouped display of `G5-` + 32 hex codes), CopyCodeButton | `src/components/tracking/` | done |
+| ShipmentTimeline + PackageHeader | `src/components/shipment/` | done |
+| ShipmentCode (short / grouped display of `G5-` + 32 hex codes), CopyCodeButton | `src/components/shipment/` | done |
 | DataTable, dialog / confirm | `src/components/ui/` | done |
 | ViewFreshnessNote (materialized-view schedule) | `src/components/reports/` | done |
 
@@ -202,7 +202,7 @@ Full pass (F1-F7), 2026-10-31, Standard mode. Evidence: Playwright with Chrome f
 | 10 Accessibility | A- | Keyboard walk, focus ring 2 px on every tab stop, native `<dialog>` trap and focus return, form errors linked by `aria-describedby`, `aria-live` on results and success banners, touch targets at least 44 px at 375 px. No screen-reader pass |
 | 13 Slop & originality | A | `slop_lint.py` grade A, 0.0 findings per 1k lines |
 
-Fixed in this review: nav labels never wrap and the bar collapses at a width where it would not fit; tracking codes (`G5-` + 32 hex) have one display component (`TrackingCode`: `G5-3f9a…b2c1` in lists with the full code in the tooltip and for screen readers, eight blocks of four in headers, selection copy and the copy button both yield the exact original string) and the search strips whitespace; nested routes keep their nav item active; the performance note states the materialized-view schedule (the API does not expose the last refresh time, so none is shown); the CRUD success banner appears only after the list reload; kg and m³ come from `lib/format.js` with a no-break space; phone touch targets raised to 44 px.
+Fixed in this review: nav labels never wrap and the bar collapses at a width where it would not fit; tracking codes (`G5-` + 32 hex) have one display component (`ShipmentCode`: `G5-3f9a…b2c1` in lists with the full code in the tooltip and for screen readers, eight blocks of four in headers, selection copy and the copy button both yield the exact original string) and the search strips whitespace; nested routes keep their nav item active; the performance note states the materialized-view schedule (the API does not expose the last refresh time, so none is shown); the CRUD success banner appears only after the list reload; kg and m³ come from `lib/format.js` with a no-break space; phone touch targets raised to 44 px.
 
 **Gate 14 (studio crit), tracking screen:** Idea 4 (the waybill route line is specific to dispatch), Memorability 4 (code and route line in one first viewport; was 3 while the route sat below the fold), Imagery & craft 4 (diagram and grouped code are finished; no imagery by design), Type & rhythm 4 (mono code against grotesk, fixed time column), Completeness 5 (all content is live API data), Interaction 4 (paste with or without spaces, the line draws in, copy and shareable URL). **Total 25 of 30, below the A+ bar of 26**; recorded with `design_log.py add --crit 25`. The board held no earlier page to compare against (the one logged entry is this project). One more pass would go to the repartidor and despachador screens, which are plainer than the tracking anchor.
 
@@ -215,4 +215,4 @@ Studio test: a studio would likely add a map-free overview of every route on the
 | Version | Date | Change |
 |---|---|---|
 | 0.1.0 | 2026-10-31 | initial direction, tokens and tracking anchor |
-| 0.2.0 | 2026-10-31 | review pass: nav breakpoints, TrackingCode component, tracking result layout, touch targets, section 11 |
+| 0.2.0 | 2026-10-31 | review pass: nav breakpoints, ShipmentCode component, tracking result layout, touch targets, section 11 |

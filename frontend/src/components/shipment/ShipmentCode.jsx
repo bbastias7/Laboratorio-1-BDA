@@ -7,7 +7,7 @@ import { groupCode, shortCode } from '../../lib/code.js';
  *  - variant "full" (headers, detail views): eight blocks of four characters, wrapping at block borders.
  * Props: code, variant, as (element), id, className.
  */
-export function TrackingCode({ code, variant = 'short', as: Tag = 'span', className = '', ...rest }) {
+export function ShipmentCode({ code, variant = 'short', as: Tag = 'span', className = '', ...rest }) {
   const grouped = variant === 'full' ? groupCode(code) : null;
   const onCopy = (e) => {
     // Only when the selection lies inside this code: copy the exact original string, not the visual form.

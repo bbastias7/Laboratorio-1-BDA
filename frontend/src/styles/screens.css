@@ -212,7 +212,7 @@
 .view-note { display: flex; gap: var(--space-4); align-items: flex-start; }
 .view-note > .icon { flex: none; margin-top: var(--space-1); }
 
-/* Tracking code display: short form in lists, grouped blocks in headers (see TrackingCode.jsx) */
+/* Tracking code display: short form in lists, grouped blocks in headers (see ShipmentCode.jsx) */
 .code { font-family: var(--typography-code-family); font-variant-numeric: tabular-nums; }
 .code-short { white-space: nowrap; }
 .code-blocks { display: inline-grid; grid-template-columns: repeat(2, auto); justify-content: start; column-gap: 0.6em; row-gap: 0; }

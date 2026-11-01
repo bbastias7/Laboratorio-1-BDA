@@ -1,20 +1,20 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { AccountProblem } from '../auth/guards.jsx';
-import { rastrear } from '../api/tracking.js';
+import { rastrear } from '../api/rastreo.js';
 import { useAsync } from '../hooks/useAsync.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { PageHeader } from '../components/layout/PageHeader.jsx';
 import { ErrorState, Loading, errorKind } from '../components/ui/States.jsx';
 import { normalizeCode, shortCode } from '../lib/code.js';
-import { PackageHeader } from '../components/tracking/PackageHeader.jsx';
-import { TrackingSearch } from '../components/tracking/TrackingSearch.jsx';
-import { TrackingTimeline } from '../components/tracking/TrackingTimeline.jsx';
+import { PackageHeader } from '../components/shipment/PackageHeader.jsx';
+import { ShipmentSearch } from '../components/shipment/ShipmentSearch.jsx';
+import { ShipmentTimeline } from '../components/shipment/ShipmentTimeline.jsx';
 
 const trackingPath = (code) => `/rastreo/${encodeURIComponent(code)}`;
 
 /** /rastreo and /rastreo/:codigo. Any signed-in role; anonymous visitors are asked to log in and resume the same code. */
-export function TrackingPage() {
+export function ShipmentPage() {
   const { codigo: rawCodigo } = useParams();
   const codigo = rawCodigo ? normalizeCode(rawCodigo) : rawCodigo; // pasted codes may carry spaces
   const { status, login } = useAuth();
@@ -37,7 +37,7 @@ export function TrackingPage() {
         Escribe el código y revisa por dónde ha pasado tu paquete.
       </PageHeader>
 
-      <TrackingSearch
+      <ShipmentSearch
         key={codigo ?? 'empty'}
         initialValue={codigo ?? ''}
         onSubmit={onSubmit}
@@ -64,7 +64,7 @@ export function TrackingPage() {
               {`Envío ${data.codigo}: ${data.estado}. ${data.eventos.length} eventos registrados.`}
             </p>
             <PackageHeader tracking={data} />
-            <TrackingTimeline tracking={data} />
+            <ShipmentTimeline tracking={data} />
           </>
         )}
       </div>

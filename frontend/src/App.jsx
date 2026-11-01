@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { LoginRoute, RequireAuth, RequireRole } from './auth/guards.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { LandingPage } from './pages/LandingPage.jsx';
-import { TrackingPage } from './pages/TrackingPage.jsx';
+import { ShipmentPage } from './pages/ShipmentPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
 import { ClienteRoutes } from './pages/cliente/ClienteRoutes.jsx';
 import { RepartidorRoutes } from './pages/repartidor/RepartidorRoutes.jsx';
@@ -14,8 +14,8 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<LandingPage />} />
         {/* Public entry: anonymous visitors see the code field and a login prompt (the API needs a token). */}
-        <Route path="rastreo" element={<TrackingPage />} />
-        <Route path="rastreo/:codigo" element={<TrackingPage />} />
+        <Route path="rastreo" element={<ShipmentPage />} />
+        <Route path="rastreo/:codigo" element={<ShipmentPage />} />
         <Route path="login" element={<LoginRoute />} />
 
         <Route element={<RequireAuth />}>

@@ -18,7 +18,7 @@ const lista = await paquetes.listPaquetes({ estado: 'En reparto' });
 | Function | Endpoint | Role |
 |---|---|---|
 | `auth.me()` | GET `/api/auth/me` | any |
-| `tracking.rastrear(codigo)` | GET `/api/tracking/{codigo}` | any (cliente: own packages, else 403) |
+| `rastreo.rastrear(codigo)` | GET `/api/tracking/{codigo}` | any (cliente: own packages, else 403) |
 | `paquetes.listPaquetes({estado,centroId})` | GET `/api/paquete` | any (scoped by role) |
 | `paquetes.getPaquete(id)` | GET `/api/paquete/{id}` | any (scoped) |
 | `paquetes.createPaquete(body)` | POST `/api/paquete` | cliente, despachador |

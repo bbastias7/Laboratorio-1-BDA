@@ -8,7 +8,7 @@ import { DataTable } from '../../components/ui/DataTable.jsx';
 import { StatusBadge } from '../../components/ui/StatusBadge.jsx';
 import { EmptyState, ErrorState, Loading, errorKind } from '../../components/ui/States.jsx';
 import { formatDate, formatDateTime } from '../../lib/format.js';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 import { ResultadoMark } from './RepartidorHome.jsx';
 
 /** Mis rutas: GET /api/ruta is already limited to the caller's own routes. */
@@ -51,7 +51,7 @@ export function RepartidorRutaDetalle() {
   }, [id]);
 
   const columns = [
-    { key: 'codigo', header: 'Código', mono: true, primary: true, render: (e) => <Link to={`/rastreo/${encodeURIComponent(e.codigo)}`}><TrackingCode code={e.codigo} /></Link> },
+    { key: 'codigo', header: 'Código', mono: true, primary: true, render: (e) => <Link to={`/rastreo/${encodeURIComponent(e.codigo)}`}><ShipmentCode code={e.codigo} /></Link> },
     { key: 'direccionDestino', header: 'Destino' },
     { key: 'resultado', header: 'Resultado', render: (e) => <ResultadoMark resultado={e.resultado} /> },
     { key: 'estado', header: 'Estado', render: (e) => <StatusBadge estado={e.estado} /> },

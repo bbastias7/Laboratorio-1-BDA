@@ -29,7 +29,7 @@ None required. If a brand photo set is wanted later, the first useful shot is a 
 |---|---|---|---|---|---|
 | none | | | | | |
 
-GSAP tweens (route reveal) are code, not assets: `src/components/tracking/TrackingTimeline.jsx`. Reduced motion renders the final state.
+GSAP tweens (route reveal) are code, not assets: `src/components/shipment/ShipmentTimeline.jsx`. Reduced motion renders the final state.
 
 ## Illustration, icons, graphic devices
 

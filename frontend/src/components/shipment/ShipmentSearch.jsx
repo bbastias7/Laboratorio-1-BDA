@@ -10,7 +10,7 @@ import { normalizeCode } from '../../lib/code.js';
  * - busy: disables the button while a request runs
  * - autoFocus
  */
-export function TrackingSearch({ initialValue = '', onSubmit, submitLabel = 'Rastrear envío', busy = false, autoFocus = false }) {
+export function ShipmentSearch({ initialValue = '', onSubmit, submitLabel = 'Rastrear envío', busy = false, autoFocus = false }) {
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState('');
 

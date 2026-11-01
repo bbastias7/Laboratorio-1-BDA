@@ -15,7 +15,7 @@ import { useToast } from '../../components/ui/Toast.jsx';
 import { explainError } from '../../lib/serverMessages.js';
 import { formatDate, formatDateTime, formatNumber, toApiDateTime, formatKg, formatM3 } from '../../lib/format.js';
 import { shortCode } from '../../lib/code.js';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 
 // Same states accepted by the asignar_ruta stored procedure.
 const ELEGIBLES = ['Registrado', 'En centro', 'Reprogramado'];
@@ -139,7 +139,7 @@ export function AsignarRuta() {
         </label>
       ),
     },
-    { key: 'codigo', header: 'Código', mono: true, primary: true, render: (p) => <TrackingCode code={p.codigo} /> },
+    { key: 'codigo', header: 'Código', mono: true, primary: true, render: (p) => <ShipmentCode code={p.codigo} /> },
     { key: 'estado', header: 'Estado', render: (p) => <StatusBadge estado={p.estado} /> },
     { key: 'direccionDestino', header: 'Destino' },
     { key: 'peso', header: 'Peso', numeric: true, mono: true, render: (p) => `${formatKg(p.peso)}` },
@@ -166,7 +166,7 @@ export function AsignarRuta() {
           </Alert>
           <ul className="assigned-list">
             {created.paquetes.map((p) => (
-              <li key={p.paqueteId}><Link className="mono" to={`/rastreo/${encodeURIComponent(p.codigo)}`}><TrackingCode code={p.codigo} /></Link><StatusBadge estado="En reparto" /></li>
+              <li key={p.paqueteId}><Link className="mono" to={`/rastreo/${encodeURIComponent(p.codigo)}`}><ShipmentCode code={p.codigo} /></Link><StatusBadge estado="En reparto" /></li>
             ))}
           </ul>
           <div className="form-actions">

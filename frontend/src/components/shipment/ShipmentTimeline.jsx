@@ -32,7 +32,7 @@ const byDate = (a, b) => (parseLocal(a.fecha)?.getTime() ?? 0) - (parseLocal(b.f
  *
  * Props: tracking (TrackingResponse). `animate` (default true) lets a parent turn the reveal off.
  */
-export function TrackingTimeline({ tracking, animate = true }) {
+export function ShipmentTimeline({ tracking, animate = true }) {
   const root = useRef(null);
   const events = useMemo(() => [...(tracking.eventos ?? [])].sort(byDate), [tracking.eventos]);
   const isFinal = FINAL_STATES.includes(tracking.estado);

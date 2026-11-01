@@ -4,8 +4,8 @@ import { homeFor } from '../auth/roles.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { Loading } from '../components/ui/States.jsx';
 import { AccountProblem } from '../auth/guards.jsx';
-import { TrackingSearch } from '../components/tracking/TrackingSearch.jsx';
-import { TrackingTimeline } from '../components/tracking/TrackingTimeline.jsx';
+import { ShipmentSearch } from '../components/shipment/ShipmentSearch.jsx';
+import { ShipmentTimeline } from '../components/shipment/ShipmentTimeline.jsx';
 
 // Illustrative data, labelled as an example on screen. Never presented as a real package.
 const SAMPLE = {
@@ -36,7 +36,7 @@ export function LandingPage() {
         <p className="eyebrow">Seguimiento de envíos</p>
         <h1 id="landing-title" className="display">¿Dónde está tu envío?</h1>
         <p className="lead">Escribe el código y ve cada paso del recorrido, incluidos los intentos de entrega que no resultaron.</p>
-        <TrackingSearch
+        <ShipmentSearch
           submitLabel="Ingresar para rastrear"
           onSubmit={(code) => login(`/rastreo/${encodeURIComponent(code)}`)}
         />
@@ -46,7 +46,7 @@ export function LandingPage() {
       <aside className="landing-sample" aria-label="Ejemplo ilustrativo de un recorrido">
         <p className="eyebrow">Ejemplo ilustrativo</p>
         <div className="sample" data-nsd-interaction="tracking-code">
-          <TrackingTimeline tracking={SAMPLE} />
+          <ShipmentTimeline tracking={SAMPLE} />
         </div>
       </aside>
     </div>

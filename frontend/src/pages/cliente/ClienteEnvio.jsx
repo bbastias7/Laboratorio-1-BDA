@@ -8,7 +8,7 @@ import { Alert } from '../../components/ui/Alert.jsx';
 import { Button, LinkButton } from '../../components/ui/Button.jsx';
 import { Field, Textarea } from '../../components/ui/Field.jsx';
 import { ErrorState, Loading, errorKind } from '../../components/ui/States.jsx';
-import { PackageHeader } from '../../components/tracking/PackageHeader.jsx';
+import { PackageHeader } from '../../components/shipment/PackageHeader.jsx';
 import { explainError } from '../../lib/serverMessages.js';
 import { shortCode } from '../../lib/code.js';
 import { formatNumber, formatKg, formatM3 } from '../../lib/format.js';

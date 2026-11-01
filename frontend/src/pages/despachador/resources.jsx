@@ -5,7 +5,7 @@ import { centros, eventos, paquetes, repartidores, rutaPaquete, rutas, usuarios,
 import { StatusBadge, ESTADOS } from '../../components/ui/StatusBadge.jsx';
 import { formatDate, formatDateTime, formatNumber, formatKg, formatM3 } from '../../lib/format.js';
 import { shortCode } from '../../lib/code.js';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 import { nowLocalInput } from '../../lib/numbers.js';
 
 const ESTADO_OPTIONS = Object.keys(ESTADOS).map((e) => ({ value: e, label: e }));
@@ -230,7 +230,7 @@ const paquetesConfig = {
   },
   buildPayload: (values, { mode, row }) => (mode === 'edit' ? { ...row, ...values } : values),
   columns: [
-    { key: 'codigo', header: 'Código', mono: true, primary: true, render: (r) => <Link to={`/rastreo/${encodeURIComponent(r.codigo)}`}><TrackingCode code={r.codigo} /></Link> },
+    { key: 'codigo', header: 'Código', mono: true, primary: true, render: (r) => <Link to={`/rastreo/${encodeURIComponent(r.codigo)}`}><ShipmentCode code={r.codigo} /></Link> },
     { key: 'estado', header: 'Estado', render: (r) => <StatusBadge estado={r.estado} /> },
     { key: 'usuarioClienteId', header: 'Cliente', render: (r, ctx) => nameOfUser(ctx, r.usuarioClienteId), text: (r, ctx) => nameOfUser(ctx, r.usuarioClienteId) },
     { key: 'direccionDestino', header: 'Destino' },

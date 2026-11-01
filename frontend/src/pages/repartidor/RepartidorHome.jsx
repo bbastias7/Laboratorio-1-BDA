@@ -15,7 +15,7 @@ import { useToast } from '../../components/ui/Toast.jsx';
 import { explainError } from '../../lib/serverMessages.js';
 import { formatDate } from '../../lib/format.js';
 import { shortCode } from '../../lib/code.js';
-import { TrackingCode } from '../../components/tracking/TrackingCode.jsx';
+import { ShipmentCode } from '../../components/shipment/ShipmentCode.jsx';
 
 // SP2 rule (registrar_entrega_fallida): attempts 1-3 reprogram the package, the 4th failure returns it to origin.
 export const MAX_REPROGRAMMED_ATTEMPTS = 3;
@@ -140,7 +140,7 @@ export function RepartidorHome() {
             {g.items.map((e) => (
               <li key={`${e.rutaId}-${e.paqueteId}`} className="delivery">
                 <div className="delivery-top">
-                  <span className="delivery-code"><TrackingCode code={e.codigo} /></span>
+                  <span className="delivery-code"><ShipmentCode code={e.codigo} /></span>
                   <span className="pkg-state">
                     <ResultadoMark resultado={e.resultado} />
                     <StatusBadge estado={e.estado} />
