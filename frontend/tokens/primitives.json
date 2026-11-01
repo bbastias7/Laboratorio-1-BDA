@@ -1,0 +1,496 @@
+{
+  "$description": "Primitive (option) tokens for Logistica G5. Brand hue 195 (cold teal), neutrals tinted at hue 200. UI code never references these directly; use semantic tokens.",
+  "color": {
+    "$type": "color",
+    "neutral": {
+      "$description": "Tinted toward the brand hue (H 200) at very low chroma. 12 steps follow Radix semantics: 1-2 backgrounds, 3-5 component states, 6-8 borders, 9-10 solids, 11-12 text.",
+      "1": {
+        "$value": "oklch(0.99 0.004 200)"
+      },
+      "2": {
+        "$value": "oklch(0.975 0.005 200)"
+      },
+      "3": {
+        "$value": "oklch(0.95 0.006 200)"
+      },
+      "4": {
+        "$value": "oklch(0.92 0.007 200)"
+      },
+      "5": {
+        "$value": "oklch(0.89 0.008 200)"
+      },
+      "6": {
+        "$value": "oklch(0.85 0.009 200)"
+      },
+      "7": {
+        "$value": "oklch(0.79 0.010 200)"
+      },
+      "8": {
+        "$value": "oklch(0.64 0.011 200)"
+      },
+      "9": {
+        "$value": "oklch(0.55 0.012 200)"
+      },
+      "10": {
+        "$value": "oklch(0.48 0.012 200)"
+      },
+      "11": {
+        "$value": "oklch(0.45 0.012 200)"
+      },
+      "12": {
+        "$value": "oklch(0.22 0.012 200)"
+      }
+    },
+    "neutral-dark": {
+      "$description": "Separate dark palette, not an inversion.",
+      "1": {
+        "$value": "oklch(0.19 0.006 200)"
+      },
+      "2": {
+        "$value": "oklch(0.22 0.009 200)"
+      },
+      "3": {
+        "$value": "oklch(0.25 0.009 200)"
+      },
+      "4": {
+        "$value": "oklch(0.28 0.009 200)"
+      },
+      "5": {
+        "$value": "oklch(0.31 0.009 200)"
+      },
+      "6": {
+        "$value": "oklch(0.35 0.009 200)"
+      },
+      "7": {
+        "$value": "oklch(0.4 0.009 200)"
+      },
+      "8": {
+        "$value": "oklch(0.5 0.009 200)"
+      },
+      "9": {
+        "$value": "oklch(0.62 0.009 200)"
+      },
+      "10": {
+        "$value": "oklch(0.68 0.009 200)"
+      },
+      "11": {
+        "$value": "oklch(0.8 0.009 200)"
+      },
+      "12": {
+        "$value": "oklch(0.94 0.006 200)"
+      }
+    },
+    "brand": {
+      "$description": "Cold teal, hue 195. Step 9 is the light-mode action fill (white text >= 4.5:1); step 8 is the dark-mode action fill.",
+      "1": {
+        "$value": "oklch(0.985 0.008 195)"
+      },
+      "2": {
+        "$value": "oklch(0.965 0.016 195)"
+      },
+      "3": {
+        "$value": "oklch(0.94 0.03 195)"
+      },
+      "4": {
+        "$value": "oklch(0.905 0.045 195)"
+      },
+      "5": {
+        "$value": "oklch(0.86 0.06 195)"
+      },
+      "6": {
+        "$value": "oklch(0.8 0.075 195)"
+      },
+      "7": {
+        "$value": "oklch(0.73 0.09 195)"
+      },
+      "8": {
+        "$value": "oklch(0.64 0.1 195)"
+      },
+      "9": {
+        "$value": "oklch(0.52 0.095 195)"
+      },
+      "10": {
+        "$value": "oklch(0.47 0.09 195)"
+      },
+      "11": {
+        "$value": "oklch(0.4 0.08 195)"
+      },
+      "12": {
+        "$value": "oklch(0.27 0.05 195)"
+      }
+    },
+    "success": {
+      "9": {
+        "$value": "oklch(0.55 0.12 150)"
+      },
+      "3": {
+        "$value": "oklch(0.94 0.04 148)"
+      },
+      "11": {
+        "$value": "oklch(0.42 0.11 148)"
+      }
+    },
+    "warning": {
+      "9": {
+        "$value": "oklch(0.76 0.14 80)"
+      },
+      "3": {
+        "$value": "oklch(0.95 0.06 80)"
+      },
+      "11": {
+        "$value": "oklch(0.45 0.12 80)"
+      }
+    },
+    "danger": {
+      "9": {
+        "$value": "oklch(0.58 0.20 25)"
+      },
+      "3": {
+        "$value": "oklch(0.94 0.04 25)"
+      },
+      "11": {
+        "$value": "oklch(0.42 0.17 25)"
+      }
+    },
+    "info": {
+      "9": {
+        "$value": "oklch(0.55 0.13 250)"
+      },
+      "3": {
+        "$value": "oklch(0.94 0.03 245)"
+      },
+      "11": {
+        "$value": "oklch(0.42 0.12 245)"
+      }
+    },
+    "white": {
+      "$value": "#ffffff"
+    },
+    "black": {
+      "$value": "#000000"
+    },
+    "success-dark": {
+      "3": {
+        "$value": "oklch(0.28 0.05 150)"
+      },
+      "9": {
+        "$value": "oklch(0.70 0.14 150)"
+      },
+      "11": {
+        "$value": "oklch(0.85 0.10 150)"
+      }
+    },
+    "warning-dark": {
+      "3": {
+        "$value": "oklch(0.28 0.05 80)"
+      },
+      "9": {
+        "$value": "oklch(0.70 0.14 80)"
+      },
+      "11": {
+        "$value": "oklch(0.85 0.10 80)"
+      }
+    },
+    "danger-dark": {
+      "3": {
+        "$value": "oklch(0.28 0.05 25)"
+      },
+      "9": {
+        "$value": "oklch(0.70 0.14 25)"
+      },
+      "11": {
+        "$value": "oklch(0.85 0.10 25)"
+      }
+    },
+    "info-dark": {
+      "3": {
+        "$value": "oklch(0.28 0.05 250)"
+      },
+      "9": {
+        "$value": "oklch(0.70 0.14 250)"
+      },
+      "11": {
+        "$value": "oklch(0.85 0.10 250)"
+      }
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "$description": "4px base. Semantic aliases (inset/stack/inline) live in semantic.json.",
+    "0": {
+      "$value": "0px"
+    },
+    "1": {
+      "$value": "2px"
+    },
+    "2": {
+      "$value": "4px"
+    },
+    "3": {
+      "$value": "6px"
+    },
+    "4": {
+      "$value": "8px"
+    },
+    "5": {
+      "$value": "12px"
+    },
+    "6": {
+      "$value": "16px"
+    },
+    "7": {
+      "$value": "20px"
+    },
+    "8": {
+      "$value": "24px"
+    },
+    "9": {
+      "$value": "32px"
+    },
+    "10": {
+      "$value": "40px"
+    },
+    "11": {
+      "$value": "48px"
+    },
+    "12": {
+      "$value": "64px"
+    },
+    "13": {
+      "$value": "80px"
+    },
+    "14": {
+      "$value": "96px"
+    },
+    "15": {
+      "$value": "128px"
+    }
+  },
+  "size": {
+    "$type": "dimension",
+    "control": {
+      "sm": {
+        "$value": "36px"
+      },
+      "md": {
+        "$value": "44px"
+      },
+      "lg": {
+        "$value": "52px"
+      }
+    },
+    "icon": {
+      "sm": {
+        "$value": "16px"
+      },
+      "md": {
+        "$value": "20px"
+      },
+      "lg": {
+        "$value": "24px"
+      }
+    },
+    "target": {
+      "min": {
+        "$value": "44px"
+      }
+    },
+    "content": {
+      "max": {
+        "$value": "1280px"
+      }
+    },
+    "measure": {
+      "max": {
+        "$value": "65ch"
+      }
+    }
+  },
+  "radius": {
+    "$type": "dimension",
+    "0": {
+      "$value": "0px"
+    },
+    "1": {
+      "$value": "3px"
+    },
+    "2": {
+      "$value": "4px"
+    },
+    "3": {
+      "$value": "6px"
+    },
+    "4": {
+      "$value": "8px"
+    },
+    "5": {
+      "$value": "12px"
+    },
+    "6": {
+      "$value": "16px"
+    },
+    "7": {
+      "$value": "28px"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "border": {
+    "width": {
+      "$type": "dimension",
+      "hairline": {
+        "$value": "1px"
+      },
+      "strong": {
+        "$value": "2px"
+      }
+    }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "$description": "Placeholders. Choose per typography.md after the moodboard; never leave a watch-list face without a written reason.",
+      "display": {
+        "$value": [
+          "Hanken Grotesk",
+          "system-ui",
+          "sans-serif"
+        ]
+      },
+      "text": {
+        "$value": [
+          "Hanken Grotesk",
+          "system-ui",
+          "sans-serif"
+        ]
+      },
+      "mono": {
+        "$value": [
+          "IBM Plex Mono",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "monospace"
+        ]
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    }
+  },
+  "duration": {
+    "$type": "duration",
+    "instant": {
+      "$value": "80ms"
+    },
+    "fast": {
+      "$value": "120ms"
+    },
+    "base": {
+      "$value": "180ms"
+    },
+    "slow": {
+      "$value": "280ms"
+    },
+    "slower": {
+      "$value": "420ms"
+    }
+  },
+  "ease": {
+    "$type": "cubicBezier",
+    "standard": {
+      "$value": [
+        0.2,
+        0,
+        0,
+        1
+      ]
+    },
+    "decelerate": {
+      "$value": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "accelerate": {
+      "$value": [
+        0.3,
+        0,
+        1,
+        1
+      ]
+    },
+    "emphasized": {
+      "$value": [
+        0.2,
+        0,
+        0,
+        1.0
+      ]
+    }
+  },
+  "opacity": {
+    "$type": "number",
+    "disabled": {
+      "$value": 0.4
+    },
+    "overlay": {
+      "$value": 0.6
+    },
+    "skeleton": {
+      "$value": 0.12
+    }
+  },
+  "z": {
+    "$type": "number",
+    "base": {
+      "$value": 0
+    },
+    "raised": {
+      "$value": 10
+    },
+    "sticky": {
+      "$value": 100
+    },
+    "overlay": {
+      "$value": 1000
+    },
+    "modal": {
+      "$value": 1100
+    },
+    "toast": {
+      "$value": 1200
+    }
+  },
+  "breakpoint": {
+    "$type": "dimension",
+    "$description": "Named by layout change, not device.",
+    "narrow": {
+      "$value": "600px"
+    },
+    "regular": {
+      "$value": "905px"
+    },
+    "wide": {
+      "$value": "1240px"
+    },
+    "max": {
+      "$value": "1440px"
+    }
+  }
+}

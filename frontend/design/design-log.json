@@ -1,0 +1,143 @@
+{
+  "$schema": "no-slop-design/design-log v1",
+  "project": "logistica-g5",
+  "created": "2026-10-31",
+  "brief": {
+    "memorable_thing": "See where your package is at a glance.",
+    "attributes": [
+      "Legible at a glance",
+      "Exact",
+      "Calm and competent"
+    ],
+    "anti_attributes": [
+      "Decorative",
+      "Vague",
+      "Loud"
+    ],
+    "surface_mode": "operate",
+    "platforms": [
+      "web app"
+    ],
+    "register": "R2 — operational decision, utilitarian category, no asset budget",
+    "interaction": "I3 — signature interaction: tracking code -> route line timeline -> copy / deep link / destination change"
+  },
+  "existing_system": {
+    "level": 0,
+    "source": "none",
+    "notes": "No prior design system; built from scratch."
+  },
+  "direction": {
+    "name": "Hoja de Ruta",
+    "approved": "2026-10-31",
+    "thesis": "Swiss waybill discipline in a cold teal world at operations-console density, with a vertical route line as the only graphic.",
+    "fonts": {
+      "display": "Hanken Grotesk",
+      "text": "Hanken Grotesk",
+      "mono": "IBM Plex Mono"
+    },
+    "hue": 195,
+    "chroma_ceiling": "0.10",
+    "neutral_temperature": "cool",
+    "density": "comfortable (phone) / compact (desktop tables)",
+    "radius_scale": "3/4/6/8/12 px",
+    "motion_posture": "functional; one GSAP reveal",
+    "rejected": [
+      "Torre de Control (R3 dark console)"
+    ],
+    "register": "R2",
+    "anchor_type": "diagram",
+    "art_direction": {
+      "subject": "the route itself",
+      "people": "none",
+      "light": "n/a",
+      "treatment": "flat strokes",
+      "ratios": []
+    },
+    "techniques": [
+      "mono display code",
+      "route line",
+      "hairline rules"
+    ],
+    "interaction_depth": "I3",
+    "signature_interaction": "tracking code -> route line"
+  },
+  "references": [
+    {
+      "id": "R01",
+      "source": "https://www.starken.cl/seguimiento",
+      "type": "local courier",
+      "taken": "code field in first viewport",
+      "serves": "signature placement"
+    },
+    {
+      "id": "R02",
+      "source": "https://www.ups.com/track?loc=es_CL",
+      "type": "global courier",
+      "taken": "status headline then history",
+      "serves": "package header"
+    },
+    {
+      "id": "R03",
+      "source": "https://www.fedex.com/es-cl/tracking.html",
+      "type": "global courier",
+      "taken": "code + copy, not-found copy",
+      "serves": "states"
+    },
+    {
+      "id": "R04",
+      "source": "https://onfleet.com",
+      "type": "global dispatch",
+      "taken": "hairline dense list + detail",
+      "serves": "despachador density"
+    },
+    {
+      "id": "R05",
+      "source": "Metro de Santiago line diagram",
+      "type": "local signage",
+      "taken": "vertical line + node per stop",
+      "serves": "route line"
+    },
+    {
+      "id": "R06",
+      "source": "Guia de despacho paper",
+      "type": "local document",
+      "taken": "mono code in ruled box",
+      "serves": "code typography"
+    },
+    {
+      "id": "R07",
+      "source": "Japanese railway timetable board",
+      "type": "global signage",
+      "taken": "fixed time column left of node",
+      "serves": "timeline row grid"
+    }
+  ],
+  "research": {
+    "methods": [
+      "market fingerprint (shoot.py --profile)",
+      "competitor first-screen look"
+    ],
+    "top_jobs": [
+      "When I wait for a package I want to see where it is and why it is late."
+    ],
+    "insights_to_decisions": [
+      "Chilexpress, Blue Express, DHL and Correos blocked headless: measured Starken, Onfleet, UPS, FedEx; others by absence.",
+      "Market photo-led; we choose no imagery (diagram anchor)."
+    ]
+  },
+  "reviews": [],
+  "anti_convergence": {
+    "$description": "Read at session start. The next unrelated project in this workspace must differ from the last on >= 2 axes, and must not repeat the skill's own tells (dark + serif + label/value table; ledger layout; one photo on a long page).",
+    "previous_directions": [],
+    "previous_registers": []
+  },
+  "decisions": [
+    {
+      "date": "",
+      "decision": "",
+      "context": "",
+      "alternatives": [],
+      "consequences": ""
+    }
+  ]
+}
