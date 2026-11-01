@@ -77,6 +77,14 @@ docker run -d --name logistica-pg \
   -p 5432:5432 postgres:16-alpine
 ```
 
+En PowerShell la continuación de línea es el acento grave (`` ` ``), no `\`:
+
+```powershell
+docker run -d --name logistica-pg `
+  -e POSTGRES_USER=logistica -e POSTGRES_PASSWORD=logistica -e POSTGRES_DB=logistica_g5 `
+  -p 5432:5432 postgres:16-alpine
+```
+
 Si el puerto 5432 está ocupado, cambie el puerto del anfitrión (por ejemplo `-p 5433:5432`) y defina `DB_PORT=5433` en el paso 5.
 
 ### 3. Cargar el esquema y los datos iniciales
@@ -88,12 +96,26 @@ PGPASSWORD=logistica psql -h localhost -p 5432 -U logistica -d logistica_g5 \
   -v ON_ERROR_STOP=1 -f createDatabase.sql
 ```
 
-La última línea de la salida debe ser `COMMIT`. Los avisos `NOTICE ... does not exist, skipping` son normales. En PowerShell, defina antes la contraseña con `$env:PGPASSWORD='logistica'`.
+En PowerShell:
+
+```powershell
+$env:PGPASSWORD='logistica'
+psql -h localhost -p 5432 -U logistica -d logistica_g5 -v ON_ERROR_STOP=1 -f createDatabase.sql
+```
+
+La última línea de la salida debe ser `COMMIT`. Los avisos `NOTICE ... does not exist, skipping` son normales.
 
 Si no tiene `psql` y usó la opción B:
 
 ```bash
 docker exec -i logistica-pg psql -U logistica -d logistica_g5 -v ON_ERROR_STOP=1 < createDatabase.sql
+```
+
+En PowerShell el operador `<` no existe; copie el script al contenedor y ejecútelo ahí (funciona en cualquier terminal):
+
+```powershell
+docker cp createDatabase.sql logistica-pg:/tmp/createDatabase.sql
+docker exec logistica-pg psql -U logistica -d logistica_g5 -v ON_ERROR_STOP=1 -f /tmp/createDatabase.sql
 ```
 
 El script crea las tablas, la vista materializada, los procedimientos y los triggers, y carga datos de demostración: 5 perfiles de usuario, 2 centros de distribución, 2 repartidores, 1 vehículo y paquetes de ejemplo. Debe usarse una sola vez sobre una base vacía. Para reinstalar, elimine y vuelva a crear la base.
@@ -110,7 +132,15 @@ docker run -d --name logistica-kc -p 8081:8080 \
   quay.io/keycloak/keycloak:26.4 start-dev --import-realm
 ```
 
-En PowerShell reemplace `"$(pwd)/keycloak/..."` por `"${PWD}/keycloak/logistica-g5-realm.json:/opt/keycloak/data/import/logistica-g5-realm.json:ro"`.
+En PowerShell (Windows) use esta versión: la continuación de línea es el acento grave (`` ` ``) y la ruta actual es `${PWD}`. Si copia el comando con `\`, Docker responde `invalid reference format`.
+
+```powershell
+docker run -d --name logistica-kc -p 8081:8080 `
+  -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin `
+  -e KC_HOSTNAME=http://localhost:8081 `
+  -v "${PWD}/keycloak/logistica-g5-realm.json:/opt/keycloak/data/import/logistica-g5-realm.json:ro" `
+  quay.io/keycloak/keycloak:26.4 start-dev --import-realm
+```
 
 Espere a que el contenedor termine de iniciar (unos 15 a 30 segundos). Este comando termina cuando Keycloak está listo:
 
@@ -118,7 +148,13 @@ Espere a que el contenedor termine de iniciar (unos 15 a 30 segundos). Este coma
 until docker logs logistica-kc 2>&1 | grep -q "started in"; do sleep 2; done
 ```
 
-Compruebe el realm:
+En PowerShell:
+
+```powershell
+while (-not (docker logs logistica-kc 2>&1 | Select-String -Quiet "started in")) { Start-Sleep 2 }
+```
+
+Compruebe el realm (en PowerShell escriba `curl.exe`, porque `curl` es un alias de `Invoke-WebRequest`):
 
 ```bash
 curl -s http://localhost:8081/realms/logistica-g5/.well-known/openid-configuration
@@ -131,6 +167,13 @@ Debe responder un JSON con `"issuer":"http://localhost:8081/realms/logistica-g5"
 ```bash
 docker exec logistica-kc /opt/keycloak/bin/kcadm.sh config credentials \
   --server http://localhost:8080 --realm master --user admin --password admin
+docker exec logistica-kc /opt/keycloak/bin/kcadm.sh update realms/logistica-g5 -s sslRequired=NONE
+```
+
+En PowerShell, el primer comando en una sola línea:
+
+```powershell
+docker exec logistica-kc /opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user admin --password admin
 docker exec logistica-kc /opt/keycloak/bin/kcadm.sh update realms/logistica-g5 -s sslRequired=NONE
 ```
 
@@ -241,6 +284,16 @@ TOKEN=$(curl -s -X POST http://localhost:8081/realms/logistica-g5/protocol/openi
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
 
 curl -s http://localhost:8080/api/auth/me -H "Authorization: Bearer $TOKEN"
+```
+
+En PowerShell:
+
+```powershell
+curl.exe -i http://localhost:8080/api/auth/me
+
+$body = @{ grant_type = 'password'; client_id = 'logistica-cli'; username = 'despachador@grupo5.cl'; password = 'Grupo5Demo!' }
+$token = (Invoke-RestMethod -Method Post -Uri http://localhost:8081/realms/logistica-g5/protocol/openid-connect/token -Body $body).access_token
+Invoke-RestMethod http://localhost:8080/api/auth/me -Headers @{ Authorization = "Bearer $token" }
 ```
 
 Respuesta esperada:
