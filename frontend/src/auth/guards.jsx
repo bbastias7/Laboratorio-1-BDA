@@ -1,7 +1,19 @@
+import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider.jsx';
 import { homeFor } from './roles.js';
 import { Loading, ErrorState } from '../components/ui/States.jsx';
+
+/** /login shortcut: anonymous users go straight to Keycloak; signed-in users land on their role home. */
+export function LoginRoute() {
+  const { status, user, login } = useAuth();
+  useEffect(() => {
+    if (status === 'anonymous') login('/');
+  }, [status, login]);
+  if (status === 'authenticated') return <Navigate to={homeFor(user.role)} replace />;
+  if (status === 'error') return <AccountProblem />;
+  return <Loading label="Abriendo el inicio de sesión" />;
+}
 
 /** Waits for auth; anonymous users are sent to the landing with the intended path kept in router state. */
 export function RequireAuth() {

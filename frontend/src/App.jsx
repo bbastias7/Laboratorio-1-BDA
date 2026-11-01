@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import { RequireAuth, RequireRole } from './auth/guards.jsx';
+import { LoginRoute, RequireAuth, RequireRole } from './auth/guards.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { LandingPage } from './pages/LandingPage.jsx';
 import { TrackingPage } from './pages/TrackingPage.jsx';
@@ -16,6 +16,7 @@ export function App() {
         {/* Public entry: anonymous visitors see the code field and a login prompt (the API needs a token). */}
         <Route path="rastreo" element={<TrackingPage />} />
         <Route path="rastreo/:codigo" element={<TrackingPage />} />
+        <Route path="login" element={<LoginRoute />} />
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole roles={['cliente']} />}>
