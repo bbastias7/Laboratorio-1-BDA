@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="es-CL">
+  <body>
+    <!-- Keycloak silent SSO check: posts the auth response back to the parent window. -->
+    <script>
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>

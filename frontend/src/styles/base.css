@@ -1,0 +1,149 @@
+/* Base: reset, document, typography roles, focus, shell. Tokens only (see tokens.css). */
+:root { color-scheme: light dark; }
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-surface-base);
+  color: var(--color-text-primary);
+  font-family: var(--typography-body-family);
+  font-size: var(--typography-body-size);
+  font-weight: var(--typography-body-weight);
+  line-height: var(--typography-body-lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img, svg { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+::selection { background: var(--color-selection); }
+
+h1 {
+  font-family: var(--typography-h1-family); font-size: var(--typography-h1-size); font-weight: var(--typography-h1-weight);
+  line-height: var(--typography-h1-lh); letter-spacing: var(--typography-h1-tracking); text-wrap: balance;
+}
+h2 {
+  font-family: var(--typography-h2-family); font-size: var(--typography-h2-size); font-weight: var(--typography-h2-weight);
+  line-height: var(--typography-h2-lh); letter-spacing: var(--typography-h2-tracking); text-wrap: balance;
+}
+h3 {
+  font-family: var(--typography-h3-family); font-size: var(--typography-h3-size); font-weight: var(--typography-h3-weight);
+  line-height: var(--typography-h3-lh); letter-spacing: var(--typography-h3-tracking);
+}
+p { text-wrap: pretty; max-width: var(--size-measure-max); }
+
+.display {
+  font-family: var(--typography-display-family); font-size: var(--typography-display-size); font-weight: var(--typography-display-weight);
+  line-height: var(--typography-display-lh); letter-spacing: var(--typography-display-tracking); text-wrap: balance;
+}
+.lead { font-size: var(--typography-body-lg-size); line-height: var(--typography-body-lg-lh); color: var(--color-text-secondary); }
+.eyebrow {
+  font-size: var(--typography-caption-size); line-height: var(--typography-caption-lh); font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-secondary);
+}
+.mono { font-family: var(--typography-code-family); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+
+a { color: var(--color-text-link); text-underline-offset: 0.18em; }
+a:visited { color: var(--color-text-link-visited); }
+
+:focus-visible { outline: var(--border-width-strong) solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-control); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; left: var(--space-4); top: var(--space-4); z-index: var(--z-toast);
+  padding: var(--space-4) var(--space-6); background: var(--color-surface-inverse); color: var(--color-text-on-inverse);
+  border-radius: var(--radius-control); transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; }
+
+/* Shell */
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  background: var(--color-surface-base); border-bottom: var(--border-width-hairline) solid var(--color-border-subtle);
+  padding-top: env(safe-area-inset-top);
+}
+.topbar-inner {
+  max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-4) var(--space-margin-page);
+  display: flex; align-items: center; gap: var(--space-6); flex-wrap: wrap;
+}
+.topbar-tools { display: flex; align-items: center; gap: var(--space-4); margin-left: auto; }
+
+.brand { display: inline-flex; align-items: center; gap: var(--space-4); color: var(--color-text-primary); text-decoration: none; }
+.brand:visited { color: var(--color-text-primary); }
+.brand-mark { width: var(--size-icon-lg); height: var(--size-icon-lg); color: var(--color-action-primary); }
+.brand-text { font-family: var(--typography-h4-family); font-size: var(--typography-h4-size); font-weight: var(--font-weight-medium); letter-spacing: -0.01em; }
+.brand-text strong { font-weight: var(--font-weight-bold); }
+
+.nav { display: none; width: 100%; order: 10; flex-direction: column; gap: var(--space-4); padding: var(--space-4) 0 var(--space-2); }
+.nav-open { display: flex; }
+.nav ul { display: flex; flex-direction: column; gap: var(--space-2); }
+.nav-link {
+  display: flex; align-items: center; gap: var(--space-4); min-height: var(--size-target-min); padding: 0 var(--space-5);
+  border-radius: var(--radius-control); color: var(--color-text-secondary); text-decoration: none;
+  font-size: var(--typography-label-size); font-weight: var(--font-weight-medium);
+}
+.nav-link:visited { color: var(--color-text-secondary); }
+.nav-link:hover { background: var(--color-action-secondary); color: var(--color-text-primary); }
+.nav-link[aria-current='page'] { color: var(--color-text-primary); background: var(--color-selection); box-shadow: inset var(--border-width-strong) 0 0 var(--color-action-primary); }
+.nav-user { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-width-hairline) solid var(--color-border-subtle); }
+.nav-user-name { display: inline-flex; align-items: center; gap: var(--space-3); font-size: var(--typography-body-sm-size); color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.nav-user-role { color: var(--color-text-tertiary); }
+.nav-toggle { margin-left: auto; }
+.nav ~ .topbar-tools { margin-left: 0; }
+
+/* Labels never wrap: the bar either fits on one line or collapses into the menu button. */
+.nav-link, .nav-user .btn, .nav-user-name { white-space: nowrap; }
+.nav-user-name > span { overflow-wrap: normal; }
+
+/* Roles with up to four links fit from 905 px; the despachador bar (six links) needs 1240 px (the `wide` breakpoint). The content column
+   stops growing at 1280 px, so in that bar the role word next to the user name is visually hidden (it stays in the
+   accessibility tree and the role is named on the page eyebrow) to keep it on one line. */
+@media (min-width: 905px) {
+  .icon-btn.nav-toggle:not(.nav-toggle-many) { display: none; }
+  .nav:not(.nav-many), .nav:not(.nav-many).nav-open { display: flex; flex-direction: row; align-items: center; width: auto; order: 0; flex: 1; padding: 0; gap: var(--space-8); }
+  .nav:not(.nav-many) ul { flex-direction: row; }
+  .nav:not(.nav-many) .nav-link { min-height: var(--size-control-md); }
+  .nav:not(.nav-many) .nav-user { flex-direction: row; align-items: center; margin-left: auto; padding: 0; border: 0; gap: var(--space-5); }
+}
+@media (min-width: 1240px) {
+  .nav-many .nav-user-role { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+}
+@media (min-width: 1240px) {
+  .icon-btn.nav-toggle { display: none; }
+  .nav-many, .nav-many.nav-open { display: flex; flex-direction: row; align-items: center; width: auto; order: 0; flex: 1; padding: 0; gap: var(--space-6); }
+  .nav-many ul { flex-direction: row; gap: var(--space-1); }
+  .nav-many .nav-link { min-height: var(--size-control-md); padding: 0 var(--space-4); }
+  .nav-many .nav-user { flex-direction: row; align-items: center; margin-left: auto; padding: 0; border: 0; gap: var(--space-5); }
+}
+
+.main { flex: 1; width: 100%; max-width: var(--size-content-max); margin: 0 auto; padding: var(--space-8) var(--space-margin-page) var(--space-12); }
+.main:focus { outline-color: transparent; } /* programmatic focus target after route changes */
+.footer {
+  border-top: var(--border-width-hairline) solid var(--color-border-subtle); padding: var(--space-6) var(--space-margin-page) calc(var(--space-6) + env(safe-area-inset-bottom));
+  color: var(--color-text-tertiary); font-size: var(--typography-caption-size);
+}
+.footer p { max-width: var(--size-content-max); margin: 0 auto; }
+
+.page { display: flex; flex-direction: column; gap: var(--space-8); }
+.page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-6); }
+.page-header-text { display: flex; flex-direction: column; gap: var(--space-3); }
+.page-intro { color: var(--color-text-secondary); font-size: var(--typography-body-lg-size); }
+.page-actions { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+
+.notice { color: var(--color-text-secondary); font-size: var(--typography-body-sm-size); border-left: var(--border-width-strong) solid var(--color-border-strong); padding-left: var(--space-5); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

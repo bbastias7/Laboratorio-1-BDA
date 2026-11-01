@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Logística G5 · Seguimiento de envíos</title>
+    <meta name="description" content="Rastrea tus envíos, gestiona entregas y rutas de Logística G5." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Fonts: one stylesheet request, no external scripts. Self-host for production (see design/assets.md). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash.
+      try {
+        var t = localStorage.getItem('g5-theme');
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Esta aplicación necesita JavaScript para funcionar. Actívalo en tu navegador e inténtalo de nuevo.</noscript>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
