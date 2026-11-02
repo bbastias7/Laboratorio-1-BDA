@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.RutaEntity;
 import com.example.demo.repositories.RutaRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,12 @@ public class RutaService {
         return rutaRepository.findAll();
     }
 
+
+    /** Same visibility as {@link #findVisibles}, plus centro/repartidor filters, paginated when {@code page} is set. */
+    public Pagina<RutaEntity> findVisiblesPage(AuthUser u, Integer centroId, Integer repartidorId,
+                                               Integer page, Integer size) {
+        return rutaRepository.findPage(u.esDespachador() ? null : u.uid(), centroId, repartidorId, page, size);
+    }
 
     /** despachador sees all routes; repartidor only its own. */
     public List<RutaEntity> findVisibles(AuthUser u) {

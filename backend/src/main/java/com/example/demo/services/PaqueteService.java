@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.PaqueteEntity;
 import com.example.demo.dto.Dtos.TrackingResponse;
 import com.example.demo.dto.Dtos.EventoView;
@@ -48,6 +49,13 @@ public class PaqueteService {
         if (estado != null && !java.util.Set.of("Registrado","En centro","En reparto","Entregado","Reprogramado","Devuelto a origen").contains(estado))
             throw new IllegalArgumentException("Estado no válido");
         return paqueteRepository.findVisibles(u.rol(), u.uid(), estado, centroId);
+    }
+
+    public Pagina<PaqueteEntity> findVisiblesPage(AuthUser u, String estado, Integer centroId, String q,
+                                                  Integer page, Integer size) {
+        if (estado != null && !java.util.Set.of("Registrado","En centro","En reparto","Entregado","Reprogramado","Devuelto a origen").contains(estado))
+            throw new IllegalArgumentException("Estado no válido");
+        return paqueteRepository.findVisiblesPage(u.rol(), u.uid(), estado, centroId, q, page, size);
     }
 
     public PaqueteEntity findVisibleById(Integer id, AuthUser u) {

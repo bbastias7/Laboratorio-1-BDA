@@ -1,4 +1,5 @@
 package com.example.demo.repositories;
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.UsuarioEntity;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,19 @@ public class UsuarioRepository {
         return jdbcTemplate.query(USUARIO_SELECT, usuarioRowMapper);
     }
 
+
+    /** Filters: exact rol; q = contains over nombre or email. */
+    public Pagina<UsuarioEntity> findPage(String rol, String q, Integer page, Integer size) {
+        String sql = USUARIO_SELECT + " WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (Consulta.hay(rol)) { sql += " AND rol = ?"; args.add(rol); }
+        if (Consulta.hay(q)) {
+            sql += " AND (nombre ILIKE ? ESCAPE '\\' OR email ILIKE ? ESCAPE '\\')";
+            args.add(Consulta.contiene(q));
+            args.add(Consulta.contiene(q));
+        }
+        return Consulta.listar(jdbcTemplate, sql, args, "id", usuarioRowMapper, page, size);
+    }
 
     public Optional<UsuarioEntity> findById(Integer id) {
         try {

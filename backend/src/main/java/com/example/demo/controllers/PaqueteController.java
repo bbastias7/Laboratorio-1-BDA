@@ -1,4 +1,5 @@
 package com.example.demo.controllers;
+import com.example.demo.dto.Pagina;
 import com.example.demo.dto.Dtos.TrackingResponse;
 
 import com.example.demo.dto.Dtos.DireccionRequest;
@@ -27,8 +28,10 @@ public class PaqueteController {
 
     @GetMapping("/paquete")
     public ResponseEntity<List<PaqueteEntity>> findAll(@AuthenticationPrincipal Jwt jwt,
-            @RequestParam(required=false) String estado, @RequestParam(required=false) Integer centroId) {
-        return ResponseEntity.ok(paqueteService.findVisibles(AuthUser.from(jwt), estado, centroId));
+            @RequestParam(required=false) String estado, @RequestParam(required=false) Integer centroId,
+            @RequestParam(required=false) String q,
+            @RequestParam(required=false) Integer page, @RequestParam(required=false) Integer size) {
+        return paqueteService.findVisiblesPage(AuthUser.from(jwt), estado, centroId, q, page, size).responder();
     }
 
     @GetMapping("/paquete/{id}")

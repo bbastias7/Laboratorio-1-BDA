@@ -1,4 +1,5 @@
 package com.example.demo.controllers;
+import com.example.demo.dto.Pagina;
 import com.example.demo.dto.Dtos.EntregaView;
 import com.example.demo.config.AuthUser;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,8 +24,10 @@ public class RepartidorController {
 
 
     @GetMapping("/repartidor")
-    public ResponseEntity<List<RepartidorEntity>> findAll() {
-        return ResponseEntity.ok(repartidorService.findAll());
+    public ResponseEntity<List<RepartidorEntity>> findAll(
+            @RequestParam(required = false) Integer centroId, @RequestParam(required = false) Integer usuarioId,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return repartidorService.findPage(centroId, usuarioId, page, size).responder();
     }
 
 

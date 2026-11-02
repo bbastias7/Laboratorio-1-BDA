@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.AuditoriaDireccionEntity;
 import com.example.demo.services.AuditoriaDireccionService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,10 @@ public class AuditoriaDireccionController {
 
 
     @GetMapping
-    public ResponseEntity<List<AuditoriaDireccionEntity>> findAll() {
-        return ResponseEntity.ok(auditoriaDireccionService.findAll());
+    public ResponseEntity<List<AuditoriaDireccionEntity>> findAll(
+            @RequestParam(required = false) Integer paqueteId, @RequestParam(required = false) Integer usuarioId,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return auditoriaDireccionService.findPage(paqueteId, usuarioId, page, size).responder();
     }
 
 

@@ -4,6 +4,7 @@
   "displayName": "Laboratorio Grupo 5",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
+  "editUsernameAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
   "accessTokenLifespan": 300,
@@ -95,6 +96,23 @@
             "access.token.claim": "true"
           }
         }
+      ]
+    },
+    {
+      "clientId": "logistica-admin",
+      "name": "Logistica G5 backend (service account)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "logistica-admin-dev-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "defaultClientScopes": [
+        "basic",
+        "roles"
       ]
     }
   ],
@@ -198,6 +216,17 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "username": "service-account-logistica-admin",
+      "enabled": true,
+      "serviceAccountClientId": "logistica-admin",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-realm"
+        ]
+      }
     }
   ]
 }

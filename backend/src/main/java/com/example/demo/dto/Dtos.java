@@ -27,6 +27,28 @@ public final class Dtos {
 
     public record DireccionRequest(@NotBlank @Size(max=255) String direccionDestino) {}
 
+    /** Public self-registration: the role is always cliente, so it is deliberately not part of the request. */
+    public record RegistroRequest(
+            @NotBlank(message = "es obligatorio") @Size(max = 64, message = "máximo 64 caracteres") String nombre,
+            @NotBlank(message = "es obligatorio") @jakarta.validation.constraints.Email(message = "no es un correo válido")
+            @Size(max = 128, message = "máximo 128 caracteres") String email,
+            @NotBlank(message = "es obligatoria")
+            @Size(min = 8, max = 128, message = "debe tener entre 8 y 128 caracteres") String password) {}
+
+    /**
+     * Staff creation by a despachador. Exactly one of {@code password} (the backend creates the Keycloak account with a
+     * temporary password) or {@code keycloakId} (links an existing account) must be present; the service enforces it.
+     */
+    public record UsuarioCrearRequest(
+            @NotBlank(message = "es obligatorio") @Size(max = 64, message = "máximo 64 caracteres") String nombre,
+            @NotBlank(message = "es obligatorio") @jakarta.validation.constraints.Email(message = "no es un correo válido")
+            @Size(max = 128, message = "máximo 128 caracteres") String email,
+            @NotBlank(message = "es obligatorio")
+            @jakarta.validation.constraints.Pattern(regexp = "cliente|repartidor|despachador",
+                    message = "debe ser cliente, repartidor o despachador") String rol,
+            @Size(max = 128, message = "debe tener como máximo 128 caracteres") String password,
+            @Size(max = 128, message = "máximo 128 caracteres") String keycloakId) {}
+
     public record EventoView(String estado, String descripcion, LocalDateTime fecha) {}
 
     public record TrackingResponse(String codigo, String estado, String direccionDestino,

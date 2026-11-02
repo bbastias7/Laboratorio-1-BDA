@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.CentroDistribucionEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -26,6 +27,15 @@ public class CentroDistribucionRepository {
                 "SELECT id, nombre, direccion, ciudad FROM centro_distribucion",
                 centroDistribucionRowMapper
         );
+    }
+
+    /** Filters: ciudad (contains); q = contains over nombre. */
+    public Pagina<CentroDistribucionEntity> findPage(String ciudad, String q, Integer page, Integer size) {
+        String sql = "SELECT id, nombre, direccion, ciudad FROM centro_distribucion WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (Consulta.hay(ciudad)) { sql += " AND ciudad ILIKE ? ESCAPE '\\'"; args.add(Consulta.contiene(ciudad)); }
+        if (Consulta.hay(q)) { sql += " AND nombre ILIKE ? ESCAPE '\\'"; args.add(Consulta.contiene(q)); }
+        return Consulta.listar(jdbcTemplate, sql, args, "id", centroDistribucionRowMapper, page, size);
     }
 
     public Optional<CentroDistribucionEntity> findById(Integer id) {

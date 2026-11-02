@@ -1,4 +1,5 @@
 package com.example.demo.repositories;
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.VehiculoEntity;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,15 @@ public class VehiculoRepository {
         return jdbcTemplate.query(sql, vehiculoEntityRowMapper);
     }
 
+
+    /** Filters: centroId; q = contains over patente. */
+    public Pagina<VehiculoEntity> findPage(Integer centroId, String q, Integer page, Integer size) {
+        String sql = VEHICULO_SELECT + " WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (centroId != null) { sql += " AND v.centro_id = ?"; args.add(centroId); }
+        if (Consulta.hay(q)) { sql += " AND v.patente ILIKE ? ESCAPE '\\'"; args.add(Consulta.contiene(q)); }
+        return Consulta.listar(jdbcTemplate, sql, args, "v.id", vehiculoEntityRowMapper, page, size);
+    }
 
     public Optional<VehiculoEntity> findById(Integer id) {
         String sql = VEHICULO_SELECT + " WHERE v.id = ?";

@@ -1,4 +1,5 @@
 package com.example.demo.repositories;
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.CentroDistribucionEntity;
 import com.example.demo.entities.RepartidorEntity;
 
@@ -34,6 +35,15 @@ public class RepartidorRepository {
         );
     }
 
+
+    /** Filters: centroId, usuarioId. */
+    public Pagina<RepartidorEntity> findPage(Integer centroId, Integer usuarioId, Integer page, Integer size) {
+        String sql = "SELECT id, usuario_id, centro_id FROM repartidor WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (centroId != null) { sql += " AND centro_id = ?"; args.add(centroId); }
+        if (usuarioId != null) { sql += " AND usuario_id = ?"; args.add(usuarioId); }
+        return Consulta.listar(jdbcTemplate, sql, args, "id", repartidorRowMapper, page, size);
+    }
 
     public Optional<RepartidorEntity> findById(Integer id) {
         try {

@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.EventoSeguimientoEntity;
 import com.example.demo.repositories.EventoSeguimientoRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ public class EventoSeguimientoService {
 
     public List<EventoSeguimientoEntity> findAll(Integer paqueteId) {
         return eventoSeguimientoRepository.findAll();
+    }
+
+
+    public Pagina<EventoSeguimientoEntity> findPage(Integer paqueteId, String estado, Integer page, Integer size) {
+        return eventoSeguimientoRepository.findPage(paqueteId, estado, page, size);
     }
 
 

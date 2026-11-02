@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.CentroDistribucionEntity;
 import com.example.demo.services.CentroDistribucionService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,10 @@ public class    CentroDistribucionController {
 
 
     @GetMapping
-    public ResponseEntity<List<CentroDistribucionEntity>> findAll() {
-        return ResponseEntity.ok(centroDistribucionService.findAll());
+    public ResponseEntity<List<CentroDistribucionEntity>> findAll(
+            @RequestParam(required = false) String ciudad, @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return centroDistribucionService.findPage(ciudad, q, page, size).responder();
     }
 
 

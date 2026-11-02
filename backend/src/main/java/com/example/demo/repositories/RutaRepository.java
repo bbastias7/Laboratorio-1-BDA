@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.RutaEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -27,6 +28,21 @@ public class RutaRepository {
 
     public List<RutaEntity> findAll() {
         return jdbcTemplate.query(RUTA_SELECT, rutaEntityRowMapper);
+    }
+
+    /** Filters: centroId, repartidorId. {@code usuarioRepartidor} (when not null) restricts to that courier's routes. */
+    public Pagina<RutaEntity> findPage(Integer usuarioRepartidor, Integer centroId, Integer repartidorId,
+                                       Integer page, Integer size) {
+        String sql = RUTA_SELECT + " WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (usuarioRepartidor != null) {
+            sql += " AND repartidor_id IN (SELECT id FROM repartidor WHERE usuario_id = ?)";
+            args.add(usuarioRepartidor);
+        }
+        if (centroId != null) { sql += " AND centro_id = ?"; args.add(centroId); }
+        if (repartidorId != null) { sql += " AND repartidor_id = ?"; args.add(repartidorId); }
+        String orden = usuarioRepartidor != null ? "fecha DESC, id DESC" : "id";
+        return Consulta.listar(jdbcTemplate, sql, args, orden, rutaEntityRowMapper, page, size);
     }
 
     public Optional<RutaEntity> findById(Integer id) {

@@ -31,6 +31,23 @@ def request(method, path, body=None, token=None, status=200):
     checks += 1
     return json.loads(data) if data else None
 
+def request_headers(method, path, body=None, token=None, status=200):
+    """Like request() but returns (body, headers); used for X-Total-Count checks."""
+    global checks
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    req = urllib.request.Request(BASE + path, data=None if body is None else json.dumps(body).encode(),
+                                 headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=20) as res:
+            code, data, hdrs = res.status, res.read(), res.headers
+    except urllib.error.HTTPError as exc:
+        code, data, hdrs = exc.code, exc.read(), exc.headers
+    assert code == status, (method, path, code, status, data.decode()[:500])
+    checks += 1
+    return (json.loads(data) if data else None), hdrs
+
 def login(name):
     body = urllib.parse.urlencode({"client_id": "logistica-cli", "grant_type": "password",
                                   "username": name + "@grupo5.cl", "password": "Grupo5Demo!"}).encode()
@@ -39,6 +56,7 @@ def login(name):
         return json.load(res)["access_token"]
 
 def run():
+    global checks
     admin, c1, c2, r1, r2 = [login(n) for n in
         ["despachador", "cliente1", "cliente2", "repartidor1", "repartidor2"]]
     request("GET", "/api/paquete", status=401)
@@ -197,6 +215,116 @@ def run():
         is_alert = total > 0 and 100 * on_time / total < 85
         assert (ctr in {x["centroId"] for x in alerts["centros"]}) == is_alert
     request("GET", "/api/reportes/alertas?umbral=101", token=admin, status=400)
+    # Paginación y filtros: con page el cuerpo es la porción y X-Total-Count el total filtrado; sin page, la lista completa.
+    for path in ["/api/paquete", "/api/usuarios", "/api/ruta", "/api/vehiculos", "/api/repartidor", "/api/rutapaquete",
+                 "/api/eventoseguimiento", "/api/auditoria", "/api/centrodistribucion"]:
+        full, hdrs = request_headers("GET", path, token=admin)
+        assert hdrs.get("X-Total-Count") is None, path
+        first, hdrs = request_headers("GET", path + "?page=0&size=1", token=admin)
+        assert int(hdrs["X-Total-Count"]) == len(full) and len(first) == min(1, len(full)), path
+        if len(full) > 1:
+            second, _ = request_headers("GET", path + "?page=1&size=1", token=admin)
+            assert second and second != first, path
+        past, hdrs = request_headers("GET", path + "?page=9999&size=100", token=admin)
+        assert past == [] and int(hdrs["X-Total-Count"]) == len(full), path
+        clamped, _ = request_headers("GET", path + "?page=0&size=100000", token=admin)
+        assert len(clamped) == min(100, len(full)), path
+    only_clients, hdrs = request_headers("GET", "/api/usuarios?rol=cliente&page=0&size=50", token=admin)
+    assert only_clients and all(x["rol"] == "cliente" for x in only_clients)
+    assert int(hdrs["X-Total-Count"]) == len(only_clients)
+    found, _ = request_headers("GET", "/api/usuarios?q=CLIENTE1&page=0", token=admin)
+    assert [x["email"] for x in found] == ["cliente1@grupo5.cl"]
+    wildcard, hdrs = request_headers("GET", "/api/usuarios?q=%25&page=0", token=admin)
+    assert wildcard == [] and hdrs["X-Total-Count"] == "0"
+    request("GET", "/api/usuarios?rol=hacker&page=0", token=admin, status=400)
+    request("GET", "/api/paquete?estado=Inexistente&page=0", token=admin, status=400)
+    mine, hdrs = request_headers("GET", "/api/paquete?page=0&size=100", token=c1)
+    assert all(x["usuarioClienteId"] == uid1 for x in mine) and int(hdrs["X-Total-Count"]) == len(mine)
+    delivered, hdrs = request_headers("GET", "/api/paquete?estado=Entregado&page=0&size=100", token=admin)
+    assert delivered and all(x["estado"] == "Entregado" for x in delivered) and int(hdrs["X-Total-Count"]) == len(delivered)
+    own_page, hdrs = request_headers("GET", "/api/ruta?page=0&size=100", token=r1)
+    assert {x["rutaId"] for x in own_page} == {x["rutaId"] for x in request("GET", "/api/ruta", token=r1)}
+    # Registro público de clientes: crea la cuenta en Keycloak, asigna el rol cliente y deja el perfil local.
+    email = f"registro.{uuid.uuid4().hex[:8]}@example.invalid"
+    new = request("POST", "/api/auth/registro", {"nombre": "Cuenta Registrada", "email": email,
+                  "password": "claveSegura1", "rol": "despachador"}, status=201)
+    assert new["rol"] == "cliente" and new["email"] == email and new["keycloakId"]
+    body = urllib.parse.urlencode({"client_id": "logistica-cli", "grant_type": "password",
+                                  "username": email, "password": "claveSegura1"}).encode()
+    with urllib.request.urlopen(urllib.request.Request(ISSUER + "/protocol/openid-connect/token", data=body), timeout=20) as res:
+        new_token = json.load(res)["access_token"]
+    assert request("GET", "/api/auth/me", token=new_token)["rol"] == "cliente"
+    request("GET", "/api/usuarios", token=new_token, status=403)
+    request("POST", "/api/auth/registro", {"nombre": "Otra", "email": email, "password": "claveSegura1"}, status=409)
+    request("POST", "/api/auth/registro", {"nombre": "Otra", "email": "despachador@grupo5.cl", "password": "claveSegura1"}, status=409)
+    request("POST", "/api/auth/registro", {"nombre": " ", "email": "no-es-correo", "password": "corta"}, status=400)
+    request("POST", "/api/auth/registro", {"nombre": "X", "email": "x@example.invalid", "password": "1234567"}, status=400)
+    request("POST", "/api/auth/registro", {}, status=400)
+    # Limpieza: borrar el perfil también elimina la cuenta de Keycloak (se comprueba más abajo con el cliente de servicio).
+    request("DELETE", f'/api/usuarios/{new["usuarioId"]}', token=admin, status=204)
+    cred = urllib.parse.urlencode({"grant_type": "client_credentials", "client_id": "logistica-admin",
+                                  "client_secret": os.getenv("KEYCLOAK_ADMIN_CLIENT_SECRET", "logistica-admin-dev-secret")}).encode()
+    with urllib.request.urlopen(urllib.request.Request(ISSUER + "/protocol/openid-connect/token", data=cred), timeout=20) as res:
+        service_token = json.load(res)["access_token"]
+    admin_base = ISSUER.replace("/realms/", "/admin/realms/")
+    # Alta de personal desde la app: cuenta de Keycloak con contraseña temporal y rol, cambio de rol sincronizado y baja.
+    def kc_get(path):
+        req = urllib.request.Request(admin_base + path, headers={"Authorization": "Bearer " + service_token})
+        try:
+            with urllib.request.urlopen(req, timeout=20) as res:
+                return res.status, json.load(res)
+        except urllib.error.HTTPError as exc:
+            return exc.code, None
+
+    def kc_roles(kc_id):
+        _, mappings = kc_get(f"/users/{kc_id}/role-mappings/realm")
+        return {r["name"] for r in mappings} & {"cliente", "repartidor", "despachador"}
+
+    staff_email = f"personal.{uuid.uuid4().hex[:8]}@example.invalid"
+    staff = request("POST", "/api/usuarios", {"nombre": "Personal Prueba", "email": staff_email, "rol": "repartidor",
+                    "password": "temporal123"}, admin, 201)
+    try:
+        assert staff["keycloakId"] and staff["email"] == staff_email and staff["rol"] == "repartidor"
+        code, kc_user = kc_get(f'/users/{staff["keycloakId"]}')
+        assert code == 200 and kc_user["enabled"] and kc_user["emailVerified"] and kc_user["username"] == staff_email
+        assert "UPDATE_PASSWORD" in kc_user["requiredActions"]
+        assert kc_roles(staff["keycloakId"]) == {"repartidor"}
+        body = urllib.parse.urlencode({"client_id": "logistica-cli", "grant_type": "password",
+                                      "username": staff_email, "password": "temporal123"}).encode()
+        try:
+            urllib.request.urlopen(urllib.request.Request(ISSUER + "/protocol/openid-connect/token", data=body), timeout=20).close()
+            raise AssertionError("la contraseña temporal no debe permitir un token directo")
+        except urllib.error.HTTPError as exc:
+            assert exc.code == 400
+            checks += 1
+        both = {"nombre": "X", "email": "x@example.invalid", "rol": "cliente"}
+        request("POST", "/api/usuarios", {**both, "password": "temporal123", "keycloakId": str(uuid.uuid4())}, admin, 400)
+        request("POST", "/api/usuarios", both, admin, 400)
+        request("POST", "/api/usuarios", {**both, "rol": "jefe", "password": "temporal123"}, admin, 400)
+        request("POST", "/api/usuarios", {**both, "password": "corta"}, admin, 400)
+        request("POST", "/api/usuarios", {**both, "email": staff_email, "password": "temporal123"}, admin, 409)
+        request("POST", "/api/usuarios", {**both, "email": "cliente1@grupo5.cl", "keycloakId": str(uuid.uuid4())}, admin, 409)
+        request("POST", "/api/usuarios", {**both, "password": "temporal123"}, c1, 403)
+        # PUT sincroniza rol, nombre y correo con Keycloak.
+        staff["rol"] = "despachador"
+        staff["nombre"] = "Personal Renombrado Prueba"
+        new_email = "n." + staff_email
+        staff["email"] = new_email
+        request("PUT", f'/api/usuarios/{staff["usuarioId"]}', staff, admin)
+        assert kc_roles(staff["keycloakId"]) == {"despachador"}
+        _, kc_user = kc_get(f'/users/{staff["keycloakId"]}')
+        assert kc_user["email"] == new_email and kc_user["username"] == new_email
+        assert kc_user["firstName"] == "Personal" and kc_user["lastName"] == "Renombrado Prueba"
+        request("PUT", f'/api/usuarios/{staff["usuarioId"]}', {**staff, "keycloakId": str(uuid.uuid4())}, admin, 400)
+        # Un despachador no puede eliminarse ni cambiar su propio rol.
+        me = request("GET", "/api/auth/me", token=admin)
+        request("DELETE", f'/api/usuarios/{me["usuarioId"]}', token=admin, status=409)
+        request("PUT", f'/api/usuarios/{me["usuarioId"]}', {**me, "rol": "cliente"}, admin, 409)
+    finally:
+        request("DELETE", f'/api/usuarios/{staff["usuarioId"]}', token=admin, status=204)
+    assert kc_get(f'/users/{staff["keycloakId"]}')[0] == 404
+    assert kc_get(f'/users/{new["keycloakId"]}')[0] == 404
+    checks += 2
     print(f"Integración HTTP aprobada: {checks} respuestas verificadas; JWT reales, RBAC, CRUD y procedimientos.")
 
 if __name__ == "__main__":

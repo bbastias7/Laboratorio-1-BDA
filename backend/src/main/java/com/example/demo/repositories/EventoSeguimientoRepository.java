@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.EventoSeguimientoEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -28,6 +29,15 @@ public class EventoSeguimientoRepository {
                 "SELECT id, paquete_id, estado, descripcion, fecha FROM evento_seguimiento",
                 eventoSeguimientoRowMapper
         );
+    }
+
+    /** Filters: paqueteId, estado. */
+    public Pagina<EventoSeguimientoEntity> findPage(Integer paqueteId, String estado, Integer page, Integer size) {
+        String sql = "SELECT id, paquete_id, estado, descripcion, fecha FROM evento_seguimiento WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (paqueteId != null) { sql += " AND paquete_id = ?"; args.add(paqueteId); }
+        if (Consulta.hay(estado)) { sql += " AND estado = ?"; args.add(estado); }
+        return Consulta.listar(jdbcTemplate, sql, args, "id", eventoSeguimientoRowMapper, page, size);
     }
 
     public Optional<EventoSeguimientoEntity> findById(Integer id) {

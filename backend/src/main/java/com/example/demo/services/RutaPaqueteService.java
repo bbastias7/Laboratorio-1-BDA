@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.RutaPaqueteEntity;
 import com.example.demo.repositories.PaqueteRepository;
 import com.example.demo.repositories.RutaPaqueteRepository;
@@ -18,6 +19,14 @@ public class RutaPaqueteService {
 
     public List<RutaPaqueteEntity> findAll() {
         return rutaPaqueteRepository.findAll();
+    }
+
+    public Pagina<RutaPaqueteEntity> findPage(Integer rutaId, Integer paqueteId, String resultado,
+                                              Integer page, Integer size) {
+        if (resultado != null && !resultado.isBlank()
+                && !java.util.Set.of("Pendiente", "Entregado", "Fallido").contains(resultado))
+            throw new IllegalArgumentException("Resultado no válido");
+        return rutaPaqueteRepository.findPage(rutaId, paqueteId, resultado, page, size);
     }
 
     public RutaPaqueteEntity findById(Integer rutaId, Integer paqueteId) {

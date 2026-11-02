@@ -1,5 +1,6 @@
 package com.example.demo.services;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.VehiculoEntity;
 import com.example.demo.repositories.VehiculoRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,11 @@ public class VehiculoService {
 
     public List<VehiculoEntity> findAll() {
         return vehiculoRepository.findAll();
+    }
+
+
+    public Pagina<VehiculoEntity> findPage(Integer centroId, String q, Integer page, Integer size) {
+        return vehiculoRepository.findPage(centroId, q, page, size);
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.dto.Dtos.AsignarRutaRequest;
 import com.example.demo.entities.RutaEntity;
 import com.example.demo.config.AuthUser;
@@ -24,8 +25,10 @@ public class RutaController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('DESPACHADOR','REPARTIDOR')")
-    public ResponseEntity<List<RutaEntity>> findAll(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(rutaService.findVisibles(AuthUser.from(jwt)));
+    public ResponseEntity<List<RutaEntity>> findAll(@AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) Integer centroId, @RequestParam(required = false) Integer repartidorId,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return rutaService.findVisiblesPage(AuthUser.from(jwt), centroId, repartidorId, page, size).responder();
     }
 
     @GetMapping("/{id}")

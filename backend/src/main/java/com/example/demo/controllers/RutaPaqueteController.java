@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.RutaPaqueteEntity;
 import com.example.demo.services.RutaPaqueteService;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,11 @@ public class RutaPaqueteController {
 
 
     @GetMapping
-    public ResponseEntity<List<RutaPaqueteEntity>> findAll() {
-        return ResponseEntity.ok(rutaPaqueteService.findAll());
+    public ResponseEntity<List<RutaPaqueteEntity>> findAll(
+            @RequestParam(required = false) Integer rutaId, @RequestParam(required = false) Integer paqueteId,
+            @RequestParam(required = false) String resultado,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return rutaPaqueteService.findPage(rutaId, paqueteId, resultado, page, size).responder();
     }
 
 

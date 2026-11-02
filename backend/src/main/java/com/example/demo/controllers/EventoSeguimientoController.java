@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.EventoSeguimientoEntity;
 import com.example.demo.services.EventoSeguimientoService;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,10 @@ public class EventoSeguimientoController {
 
 
     @GetMapping
-    public ResponseEntity<List<EventoSeguimientoEntity>> findAll() {
-        return ResponseEntity.ok(eventoSeguimientoService.findAll(null));
+    public ResponseEntity<List<EventoSeguimientoEntity>> findAll(
+            @RequestParam(required = false) Integer paqueteId, @RequestParam(required = false) String estado,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return eventoSeguimientoService.findPage(paqueteId, estado, page, size).responder();
     }
 
 

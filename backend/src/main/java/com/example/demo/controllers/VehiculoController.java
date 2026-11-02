@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.VehiculoEntity;
 import com.example.demo.services.VehiculoService;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,10 @@ public class VehiculoController {
 
 
     @GetMapping
-    public ResponseEntity<List<VehiculoEntity>> findAll() {
-        return ResponseEntity.ok(vehiculoService.findAll());
+    public ResponseEntity<List<VehiculoEntity>> findAll(
+            @RequestParam(required = false) Integer centroId, @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return vehiculoService.findPage(centroId, q, page, size).responder();
     }
 
 

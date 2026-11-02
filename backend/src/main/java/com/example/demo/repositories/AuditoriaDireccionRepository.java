@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.AuditoriaDireccionEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -29,6 +30,16 @@ public class AuditoriaDireccionRepository {
                 "SELECT id, paquete_id, usuario_id, direccion_anterior, direccion_nueva, fecha FROM auditoria_direccion",
                 auditoriaDireccionRowMapper
         );
+    }
+
+    /** Filters: paqueteId, usuarioId. */
+    public Pagina<AuditoriaDireccionEntity> findPage(Integer paqueteId, Integer usuarioId, Integer page, Integer size) {
+        String sql = "SELECT id, paquete_id, usuario_id, direccion_anterior, direccion_nueva, fecha " +
+                "FROM auditoria_direccion WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (paqueteId != null) { sql += " AND paquete_id = ?"; args.add(paqueteId); }
+        if (usuarioId != null) { sql += " AND usuario_id = ?"; args.add(usuarioId); }
+        return Consulta.listar(jdbcTemplate, sql, args, "id", auditoriaDireccionRowMapper, page, size);
     }
 
     public Optional<AuditoriaDireccionEntity> findById(Integer id) {

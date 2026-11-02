@@ -1,8 +1,10 @@
 package com.example.demo.controllers;
+import com.example.demo.dto.Pagina;
 import com.example.demo.config.AuthUser;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 
+import com.example.demo.dto.Dtos.UsuarioCrearRequest;
 import com.example.demo.entities.UsuarioEntity;
 import com.example.demo.services.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +24,10 @@ public class UsuarioController {
 
 
     @GetMapping("/usuarios")
-    public ResponseEntity<List<UsuarioEntity>> findAll() {
-        List<UsuarioEntity> usuarios = usuarioService.findAll();
-        return ResponseEntity.ok(usuarios);
+    public ResponseEntity<List<UsuarioEntity>> findAll(
+            @RequestParam(required = false) String rol, @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
+        return usuarioService.findPage(rol, q, page, size).responder();
     }
 
 
@@ -57,7 +60,7 @@ public class UsuarioController {
 
 
     @PostMapping("/usuarios")
-    public ResponseEntity<UsuarioEntity> saveUsuario(@jakarta.validation.Valid @RequestBody UsuarioEntity usuario) {
+    public ResponseEntity<UsuarioEntity> saveUsuario(@jakarta.validation.Valid @RequestBody UsuarioCrearRequest usuario) {
         UsuarioEntity nuevoUsuario = usuarioService.saveUsuario(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
@@ -66,15 +69,16 @@ public class UsuarioController {
     @PutMapping("/usuarios/{id}")
     public ResponseEntity<UsuarioEntity> updateUsuario(
             @PathVariable Integer id,
-            @jakarta.validation.Valid @RequestBody UsuarioEntity usuario) {
-        UsuarioEntity usuarioActualizado = usuarioService.updateUsuario(id, usuario);
+            @jakarta.validation.Valid @RequestBody UsuarioEntity usuario,
+            @AuthenticationPrincipal Jwt jwt) {
+        UsuarioEntity usuarioActualizado = usuarioService.updateUsuario(id, usuario, AuthUser.from(jwt).uid());
         return ResponseEntity.ok(usuarioActualizado);
     }
 
 
     @DeleteMapping("/usuarios/{id}")
-    public ResponseEntity<Void> deleteUsuario(@PathVariable Integer id) {
-        usuarioService.deleteById(id);
+    public ResponseEntity<Void> deleteUsuario(@PathVariable Integer id, @AuthenticationPrincipal Jwt jwt) {
+        usuarioService.deleteById(id, AuthUser.from(jwt).uid());
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/auth/me")

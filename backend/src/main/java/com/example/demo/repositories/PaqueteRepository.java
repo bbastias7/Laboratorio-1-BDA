@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.PaqueteEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -114,6 +115,21 @@ public class PaqueteRepository {
         if (estado != null) { sql += " AND p.estado = ?"; args.add(estado); }
         if (centroId != null) { sql += " AND p.centro_id = ?"; args.add(centroId); }
         return jdbcTemplate.query(sql + " ORDER BY p.id", paqueteRowMapper, args.toArray());
+    }
+
+    /** Same visibility and filters as {@link #findVisibles}, plus q = contains over codigo or direccion_destino. */
+    public Pagina<PaqueteEntity> findVisiblesPage(String rol, Integer uid, String estado, Integer centroId,
+                                                  String q, Integer page, Integer size) {
+        String sql = PAQUETE_SELECT + " WHERE " + visibilidad(rol);
+        var args = new java.util.ArrayList<Object>(java.util.Arrays.asList(visibilidadArgs(rol, uid)));
+        if (estado != null) { sql += " AND p.estado = ?"; args.add(estado); }
+        if (centroId != null) { sql += " AND p.centro_id = ?"; args.add(centroId); }
+        if (Consulta.hay(q)) {
+            sql += " AND (p.codigo ILIKE ? ESCAPE '\\' OR p.direccion_destino ILIKE ? ESCAPE '\\')";
+            args.add(Consulta.contiene(q));
+            args.add(Consulta.contiene(q));
+        }
+        return Consulta.listar(jdbcTemplate, sql, args, "p.id", paqueteRowMapper, page, size);
     }
 
     public boolean esVisible(Integer paqueteId, String rol, Integer uid) {

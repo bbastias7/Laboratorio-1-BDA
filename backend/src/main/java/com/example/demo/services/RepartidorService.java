@@ -1,4 +1,5 @@
 package com.example.demo.services;
+import com.example.demo.dto.Pagina;
 import com.example.demo.dto.Dtos.EntregaView;
 import com.example.demo.config.AuthUser;
 import com.example.demo.repositories.RutaPaqueteRepository;
@@ -21,6 +22,11 @@ public class RepartidorService {
 
     public List<RepartidorEntity> findAll() {
         return repartidorRepository.findAll();
+    }
+
+
+    public Pagina<RepartidorEntity> findPage(Integer centroId, Integer usuarioId, Integer page, Integer size) {
+        return repartidorRepository.findPage(centroId, usuarioId, page, size);
     }
 
 

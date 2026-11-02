@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import com.example.demo.dto.Pagina;
 import com.example.demo.entities.RutaPaqueteEntity;
 import com.example.demo.dto.Dtos.EntregaView;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,17 @@ public class RutaPaqueteRepository {
 
     public List<RutaPaqueteEntity> findAll() {
         return jdbcTemplate.query(RUTA_PAQUETE_SELECT, rutaPaqueteEntityRowMapper);
+    }
+
+    /** Filters: rutaId, paqueteId, resultado. */
+    public Pagina<RutaPaqueteEntity> findPage(Integer rutaId, Integer paqueteId, String resultado,
+                                              Integer page, Integer size) {
+        String sql = RUTA_PAQUETE_SELECT + " WHERE TRUE";
+        List<Object> args = new java.util.ArrayList<>();
+        if (rutaId != null) { sql += " AND ruta_id = ?"; args.add(rutaId); }
+        if (paqueteId != null) { sql += " AND paquete_id = ?"; args.add(paqueteId); }
+        if (Consulta.hay(resultado)) { sql += " AND resultado = ?"; args.add(resultado); }
+        return Consulta.listar(jdbcTemplate, sql, args, "ruta_id, paquete_id", rutaPaqueteEntityRowMapper, page, size);
     }
 
     public Optional<RutaPaqueteEntity> findByIds(Integer rutaId, Integer paqueteId) {

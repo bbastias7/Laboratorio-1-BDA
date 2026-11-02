@@ -59,6 +59,12 @@ public class ApiExceptionHandler {
         return body(HttpStatus.CONFLICT, e.getMessage());
     }
 
+    @ExceptionHandler(IdentidadNoDisponibleException.class)
+    ResponseEntity<Map<String, String>> identidad(IdentidadNoDisponibleException e) {
+        log.error("Keycloak admin error: {}", e.getMessage());
+        return body(HttpStatus.SERVICE_UNAVAILABLE, "Servicio de identidad no disponible");
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<Map<String, String>> denied(AccessDeniedException e) {
         return body(HttpStatus.FORBIDDEN, "No tiene permiso para esta operación");
