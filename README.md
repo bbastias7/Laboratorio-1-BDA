@@ -629,7 +629,7 @@ python3 verify_api.py
 
 Incluyen la paginación y los filtros de todos los listados y el registro de clientes (la cuenta de prueba se elimina al terminar).
 
-Resultado esperado: `Integración HTTP aprobada: 166 respuestas verificadas; JWT reales, RBAC, CRUD y procedimientos.`
+Resultado esperado: `Integración HTTP aprobada: 183 respuestas verificadas; JWT reales, RBAC, CRUD y procedimientos.`
 
 Pruebas de concurrencia (`backend/tests/concurrencia.py`): una edición del paquete simultánea con su entrega, y dos asignaciones simultáneas a una ruta con capacidad para una sola. Requieren `psql` en el `PATH` (o `PSQL_BIN`), Keycloak y el backend en ejecución, y crean datos, por lo que deben usarse solo en una base de pruebas:
 
