@@ -179,6 +179,14 @@ docker exec logistica-kc /opt/keycloak/bin/kcadm.sh update realms/logistica-g5 -
 
 Esta configuración se guarda en el contenedor; si lo elimina y lo vuelve a crear, repita el paso. En la verificación de este manual (Docker Desktop en macOS) el paso fue necesario.
 
+**Si ya había importado el realm antes de esta versión**, debe recrear el contenedor para que Keycloak importe el nuevo cliente `logistica-admin` (el registro de clientes y la gestión de usuarios del personal lo necesitan; la gestión de usuarios usa además el ajuste `editUsernameAllowed: true` del realm, para poder cambiar el correo de una cuenta). Keycloak importa el realm solo la primera vez, por lo que basta con eliminar el contenedor y repetir este paso 4 (la base de datos PostgreSQL no se toca):
+
+```bash
+docker rm -f logistica-kc
+```
+
+En PowerShell el comando es el mismo (`docker rm -f logistica-kc`). Después ejecute de nuevo el `docker run` de arriba y, si lo necesitó, el paso de solución de problemas «HTTPS required».
+
 El `issuer` del token debe coincidir exactamente con `KEYCLOAK_ISSUER` del backend. Por eso se fija `KC_HOSTNAME` con el puerto publicado: si usa otro puerto de anfitrión, cambie ambos valores.
 
 Alternativa en Windows sin Docker: `keycloak/start-keycloak.ps1` importa el realm y inicia Keycloak en el puerto 8081 desde una distribución local, que por defecto debe estar en `..\..\Herramientas\keycloak-26.6.1` relativo a la carpeta `keycloak/` (parámetro `-KeycloakHome` para otra ruta, `-Port` para otro puerto):
@@ -202,6 +210,10 @@ Todas son opcionales; los valores por defecto sirven para el despliegue de los p
 | `KEYCLOAK_ISSUER` | `http://localhost:8081/realms/logistica-g5` | Issuer esperado en los JWT; de él se obtienen las claves públicas |
 | `KEYCLOAK_AUDIENCE` | `logistica-api` | Audiencia exigida en los JWT |
 | `CORS_ORIGINS` | `http://localhost:5173` | Orígenes permitidos, separados por coma |
+| `KEYCLOAK_BASE_URL` | `http://localhost:8081` | URL base de Keycloak que usa el backend para su API de administración (registro de clientes) |
+| `KEYCLOAK_REALM` | `logistica-g5` | Realm donde se crean las cuentas registradas |
+| `KEYCLOAK_ADMIN_CLIENT_ID` | `logistica-admin` | Cliente confidencial (cuenta de servicio) con el que el backend crea usuarios |
+| `KEYCLOAK_ADMIN_CLIENT_SECRET` | `logistica-admin-dev-secret` | Secreto de ese cliente. El valor por defecto es solo de desarrollo y está en el JSON del realm: cámbielo en cualquier otro entorno |
 | `REFRESH_CRON` | `0 0 3 * * *` | Cron (zona `America/Santiago`) del refresco diario de la vista materializada |
 
 Ejemplo con puertos distintos a los de defecto (Linux/macOS):
@@ -306,13 +318,15 @@ Si obtiene 401 con un token válido, revise que `KEYCLOAK_ISSUER` sea idéntico 
 
 ## Uso del frontend
 
-Al abrir `http://localhost:5173` se ve la página de inicio con el campo de código. «Ingresar» lleva a la página de inicio de sesión de Keycloak (el usuario es el correo completo, por ejemplo `cliente1@grupo5.cl`); al volver, cada rol llega a su pantalla inicial. Los envíos nuevos tienen un código `G5-` seguido de 32 caracteres hexadecimales; en pantalla se muestra abreviado en las listas y agrupado en bloques de cuatro en los detalles. El código real es el que se copia y se envía a la API, y el campo de seguimiento acepta códigos pegados con o sin espacios.
+Al abrir `http://localhost:5173` se ve la página de inicio con el campo de código. Una persona nueva puede usar «Crear cuenta» (`/registro`): ingresa nombre, correo, contraseña (mínimo 8 caracteres) y la confirmación; el formulario valida cada campo antes de enviar. Al terminar, la pantalla de confirmación ofrece «Ingresar», que abre el inicio de sesión de Keycloak, y la cuenta queda con el rol `cliente` (no se puede elegir otro). Si el correo ya está registrado, el formulario lo indica junto al campo. «Ingresar» lleva a la página de inicio de sesión de Keycloak (el usuario es el correo completo, por ejemplo `cliente1@grupo5.cl`); al volver, cada rol llega a su pantalla inicial. Los envíos nuevos tienen un código `G5-` seguido de 32 caracteres hexadecimales; en pantalla se muestra abreviado en las listas y agrupado en bloques de cuatro en los detalles. El código real es el que se copia y se envía a la API, y el campo de seguimiento acepta códigos pegados con o sin espacios.
 
 | Usuario de prueba | Qué puede hacer |
 |---|---|
 | `cliente1@grupo5.cl`, `cliente2@grupo5.cl` | Ver sus envíos, crear un envío y copiar su código, cambiar la dirección de destino (bloqueado en estados finales) y rastrear sus propios paquetes |
 | `repartidor1@grupo5.cl`, `repartidor2@grupo5.cl` | Ver sus entregas agrupadas por ruta, marcar una entrega como realizada o registrar una entrega fallida (con motivo), y ver sus rutas |
 | `despachador@grupo5.cl` | Panel de operación, asignar una ruta con control de capacidad, mantenedores de usuarios, centros, vehículos, repartidores, rutas, asignaciones, eventos y paquetes, auditoría de solo lectura, y reportes de rendimiento con alertas bajo el umbral y refresco de la vista materializada |
+
+En los mantenedores del despachador cada tabla se pagina en el servidor (15 registros por página, con «Anterior», «Siguiente» y «Página X de Y») y ofrece los filtros del recurso: por ejemplo, rol y búsqueda por nombre o correo en usuarios; estado, centro y búsqueda por código o destino en paquetes; centro y repartidor en rutas. Los filtros y la búsqueda se aplican en la base de datos y el contador muestra el total filtrado.
 
 Cualquier rol puede rastrear un envío por código en «Rastrear». Un cliente que abre una pantalla de otro rol ve el aviso «No tienes acceso a esta sección». Las cifras de rendimiento provienen de una vista materializada que se refresca cada día a las 03:00 o desde «Refrescar vista»; la API no informa la fecha del último refresco.
 
@@ -328,7 +342,7 @@ Definidos en el realm y enlazados por `sub` a los perfiles creados por `createDa
 | `cliente1@grupo5.cl` | cliente |
 | `cliente2@grupo5.cl` | cliente |
 
-El realm define también los clientes `logistica-web` (público, flujo de código; para el frontend), `logistica-cli` (público, flujo de contraseña; para pruebas con `curl`) y `logistica-api` (audiencia). Consola de administración de Keycloak: `http://localhost:8081` (usuario `admin`, contraseña `admin` definidos en el comando Docker).
+El realm define también los clientes `logistica-web` (público, flujo de código; para el frontend), `logistica-cli` (público, flujo de contraseña; para pruebas con `curl`), `logistica-api` (audiencia) y `logistica-admin` (confidencial, solo cuenta de servicio con `client_credentials`: el backend lo usa para crear, actualizar, cambiar de rol y eliminar usuarios (registro de clientes y gestión del personal); tiene únicamente los roles `manage-users` y `view-realm` de `realm-management`). El registro propio de Keycloak sigue desactivado (`registrationAllowed: false`): las cuentas se crean solo a través de `POST /api/auth/registro` (clientes) o `POST /api/usuarios` (despachador). Consola de administración de Keycloak: `http://localhost:8081` (usuario `admin`, contraseña `admin` definidos en el comando Docker).
 
 ## Roles y permisos (RBAC)
 
@@ -342,14 +356,15 @@ Los roles son roles de realm de Keycloak (`cliente`, `repartidor`, `despachador`
 
 ## Documentación de la API
 
-URL base: `http://localhost:8080/api`. Todas las rutas requieren el encabezado `Authorization: Bearer <token>`. Los cuerpos y respuestas son JSON; las fechas usan formato ISO local (`2026-11-10T18:00:00`, zona `America/Santiago`).
+URL base: `http://localhost:8080/api`. Todas las rutas requieren el encabezado `Authorization: Bearer <token>`, salvo `POST /auth/registro`, que es público. Los cuerpos y respuestas son JSON; las fechas usan formato ISO local (`2026-11-10T18:00:00`, zona `America/Santiago`).
 
 ### Endpoints principales
 
 | Método | Ruta | Rol | Descripción |
 |---|---|---|---|
+| POST | `/auth/registro` | público | Registro propio de un cliente: crea la cuenta en Keycloak y su perfil (rol siempre `cliente`) |
 | GET | `/auth/me` | autenticado | Perfil del usuario del token |
-| GET | `/paquete` | autenticado | Lista paquetes visibles para el rol. Filtros opcionales `estado`, `centroId` |
+| GET | `/paquete` | autenticado | Lista paquetes visibles para el rol. Filtros opcionales `estado`, `centroId`, `q` (código o dirección); paginable |
 | GET | `/paquete/{id}` | autenticado | Detalle de un paquete visible |
 | POST | `/paquete` | cliente, despachador | Registra un paquete (estado inicial `Registrado`; el código lo genera la base) |
 | PUT | `/paquete/{id}` | despachador | Actualiza un paquete |
@@ -366,7 +381,7 @@ URL base: `http://localhost:8080/api`. Todas las rutas requieren el encabezado `
 | POST, PUT, DELETE | `/centrodistribucion`, `/centrodistribucion/{id}` | despachador | CRUD de centros |
 | GET, POST, PUT, DELETE | `/vehiculos`, `/vehiculos/{id}` | despachador | CRUD de vehículos |
 | GET, POST, PUT, DELETE | `/repartidor`, `/repartidor/{id}` | despachador | CRUD de repartidores |
-| GET, POST, PUT, DELETE | `/usuarios`, `/usuarios/{id}` | despachador | CRUD de usuarios. Además `GET /usuarios/email?correo=`, `/usuarios/find?nombre=`, `/usuarios/rol/{rol}` |
+| GET, POST, PUT, DELETE | `/usuarios`, `/usuarios/{id}` | despachador | CRUD de usuarios, sincronizado con Keycloak (crea la cuenta con contraseña temporal, cambia el rol y elimina la cuenta; ver «Crear una cuenta del personal»). Además `GET /usuarios/email?correo=`, `/usuarios/find?nombre=`, `/usuarios/rol/{rol}` |
 | GET, POST, PUT, DELETE | `/eventoseguimiento`, `/eventoseguimiento/{id}` | despachador | CRUD de eventos de seguimiento |
 | GET, POST, PUT, DELETE | `/rutapaquete`, `/rutapaquete/{rutaId}/{paqueteId}` | despachador | CRUD de la relación ruta-paquete |
 | GET | `/auditoria`, `/auditoria/{id}` | despachador | Auditoría de cambios de dirección (solo lectura; inmutable) |
@@ -374,9 +389,71 @@ URL base: `http://localhost:8080/api`. Todas las rutas requieren el encabezado `
 | GET | `/reportes/alertas?umbral=85` | despachador | Repartidores y centros bajo el umbral de entregas a tiempo (%) |
 | POST | `/reportes/refrescar` | despachador | Refresca la vista materializada |
 
+### Paginación y filtros
+
+Todos los listados CRUD aceptan `page` (base 0) y `size` (por defecto 20; se acota al rango 1 a 100). Cuando se envía `page`, el cuerpo sigue siendo un arreglo JSON con la porción pedida, ordenado por la clave primaria, y el encabezado `X-Total-Count` informa el total de registros que cumplen los filtros. Sin `page` se devuelve la lista completa, como antes. Si `page` supera la última página, la respuesta es `[]` con el total correcto. En paquetes y rutas, la visibilidad por rol se aplica antes de paginar y contar.
+
+| Recurso | Filtros opcionales (además de `page` y `size`) |
+|---|---|
+| `/paquete` | `estado`, `centroId`, `q` (contiene, en código o dirección de destino) |
+| `/usuarios` | `rol`, `q` (contiene, en nombre o correo) |
+| `/ruta` | `centroId`, `repartidorId` |
+| `/vehiculos` | `centroId`, `q` (contiene, en patente) |
+| `/repartidor` | `centroId`, `usuarioId` |
+| `/rutapaquete` | `rutaId`, `paqueteId`, `resultado` (`Pendiente`, `Entregado`, `Fallido`) |
+| `/eventoseguimiento` | `paqueteId`, `estado` |
+| `/auditoria` | `paqueteId`, `usuarioId` |
+| `/centrodistribucion` | `ciudad` (contiene), `q` (contiene, en nombre) |
+
+Un valor no válido en `rol`, `estado` o `resultado` responde 400. El frontend (navegador) puede leer `X-Total-Count` porque el backend lo expone por CORS.
+
+```bash
+curl -si "http://localhost:8080/api/paquete?estado=Registrado&page=0&size=2" -H "Authorization: Bearer $TOKEN"
+# HTTP/1.1 200
+# X-Total-Count: 3
+# [ ...dos paquetes... ]
+```
+
+En PowerShell, `curl.exe -si "http://localhost:8080/api/paquete?page=0&size=2" -H "Authorization: Bearer $token"` (las comillas evitan que `&` se interprete como operador).
+
 ### Ejemplos
 
 Las respuestas siguientes provienen de una ejecución real con los datos de `createDatabase.sql`; los identificadores y códigos varían. Se asume `TOKEN` obtenido como en el paso 8. Cada ejemplo indica el usuario que debe autenticarse.
+
+**Registrarse como cliente** (sin token). La contraseña debe tener entre 8 y 128 caracteres. El rol no se puede enviar: siempre es `cliente`.
+
+```bash
+curl -s -X POST http://localhost:8080/api/auth/registro \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Ana Pérez","email":"ana.perez@example.cl","password":"claveSegura1"}'
+```
+
+```json
+{"usuarioId":6,"nombre":"Ana Pérez","email":"ana.perez@example.cl","rol":"cliente","keycloakId":"7a42f4aa-15c8-47da-ac90-61cdd5e1a617"}
+```
+
+Estado 201. Con ese correo y contraseña se puede obtener un token como en el paso 8. Responde 409 `{"error":"El correo ya está registrado"}` si el correo ya existe (en Keycloak o en la base) y 400 si el nombre está vacío, el correo no es válido o la contraseña tiene menos de 8 caracteres. Si no se puede crear el perfil en la base, la cuenta de Keycloak recién creada se elimina. Si Keycloak no está disponible responde 503.
+
+**Crear una cuenta del personal** (`despachador@grupo5.cl`). En la aplicación web, «Usuarios» → «Crear usuario» pide nombre, correo, rol y «Contraseña temporal» (mínimo 8 caracteres). El backend crea la cuenta en Keycloak (habilitada, con el rol elegido y esa contraseña como **temporal**) y luego el perfil en la base; no hay que copiar ningún identificador. La persona ingresa con su correo y la contraseña temporal, y Keycloak le exige cambiarla en el primer inicio de sesión por la web. Mientras no la cambie, un `grant_type=password` directo (como el del paso 8) responde `Account is not fully set up`. Si el rol es `repartidor`, la aplicación recuerda que además debe crearse su ficha en «Repartidores» (centro de distribución).
+
+```bash
+curl -s -X POST http://localhost:8080/api/usuarios \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"nombre":"Luis Soto","email":"luis.soto@example.cl","rol":"repartidor","password":"temporal123"}'
+```
+
+```json
+{"usuarioId":7,"nombre":"Luis Soto","email":"luis.soto@example.cl","rol":"repartidor","keycloakId":"0d98447c-9149-41e3-99f5-895e60fd7b54"}
+```
+
+Estado 201. El cuerpo admite dos variantes, y debe enviarse **exactamente una** de `password` o `keycloakId`; si no, responde 400:
+
+- Cuenta nueva: `{"nombre","email","rol","password"}` (como arriba). El correo se normaliza a minúsculas y se usa también como nombre de usuario.
+- Vincular una cuenta que ya existe en Keycloak: `{"nombre":"Luis Soto","email":"luis.soto@example.cl","rol":"repartidor","keycloakId":"<sub de la cuenta>"}`. No modifica Keycloak.
+
+Respuestas: 400 si falta o sobra `password`/`keycloakId`, el rol no es `cliente`, `repartidor` o `despachador`, o la contraseña tiene menos de 8 caracteres; 409 si el correo ya existe (en la base o en Keycloak); 503 si Keycloak no está disponible. Si falla la inserción en la base, la cuenta de Keycloak recién creada se elimina.
+
+`PUT /api/usuarios/{id}` mantiene la cuenta al día: si cambian el nombre o el correo, se actualiza el usuario de Keycloak (el correo es también el nombre de usuario); si cambia el rol, se reemplaza el rol de realm (se quita el anterior y se agrega el nuevo). Primero se modifica Keycloak y después la base; si la base falla, se revierte Keycloak. `keycloakId` no se puede modificar. `DELETE /api/usuarios/{id}` elimina el perfil y después la cuenta de Keycloak; si este último paso falla, el servidor lo registra como advertencia y igualmente responde 204. Si el usuario tiene registros asociados, el borrado responde 409 y no toca Keycloak. Por seguridad, un despachador no puede eliminar su propia cuenta ni cambiar su propio rol (409).
 
 **Registrar un paquete** (`cliente1@grupo5.cl`):
 
@@ -480,6 +557,7 @@ Todos los errores tienen la forma `{"error": "mensaje"}`.
 | 404 | Recurso inexistente | `{"error":"Paquete inexistente"}` |
 | 409 | Conflicto con una regla de negocio (capacidad, estado, restricción de la base) | `{"error":"No se puede cambiar el destino de un paquete en estado final"}` |
 | 500 | Error interno no clasificado | `{"error":"Error interno"}` |
+| 503 | Keycloak no disponible al registrar una cuenta | `{"error":"Servicio de identidad no disponible"}` |
 
 ## Objetos de base de datos
 
@@ -518,9 +596,12 @@ cd backend/tests
 python3 verify_api.py
 # variables opcionales: API_URL (por defecto http://localhost:8080)
 #                       KEYCLOAK_ISSUER (por defecto http://localhost:8081/realms/logistica-g5)
+#                       KEYCLOAK_ADMIN_CLIENT_SECRET (por defecto el secreto de desarrollo de logistica-admin)
 ```
 
-Resultado esperado: `Integración HTTP aprobada: 104 respuestas verificadas; JWT reales, RBAC, CRUD y procedimientos.`
+Incluyen la paginación y los filtros de todos los listados y el registro de clientes (la cuenta de prueba se elimina al terminar).
+
+Resultado esperado: `Integración HTTP aprobada: 166 respuestas verificadas; JWT reales, RBAC, CRUD y procedimientos.`
 
 Pruebas de concurrencia (`backend/tests/concurrencia.py`): una edición del paquete simultánea con su entrega, y dos asignaciones simultáneas a una ruta con capacidad para una sola. Requieren `psql` en el `PATH` (o `PSQL_BIN`), Keycloak y el backend en ejecución, y crean datos, por lo que deben usarse solo en una base de pruebas:
 
