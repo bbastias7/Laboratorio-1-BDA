@@ -13,6 +13,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Servicio de reportes de rendimiento.
+ * <p>Consulta la vista materializada {@code mv_rendimiento_entregas},
+ * genera alertas de desempeño bajo un umbral configurable y gestiona
+ * el refresco programado de la vista.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class ReporteService {

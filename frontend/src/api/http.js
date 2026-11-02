@@ -1,3 +1,10 @@
+/**
+ * Cliente HTTP centralizado para la API REST del backend.
+ * Todas las solicitudes pasan por request(), que adjunta
+ * el token JWT, serializa el cuerpo a JSON y lanza un ApiError
+ * con el mensaje del servidor si la respuesta no es exitosa.
+ * @module http
+ */
 import { config } from '../config.js';
 import { getFreshToken } from '../auth/keycloak.js';
 import { ApiError } from './ApiError.js';

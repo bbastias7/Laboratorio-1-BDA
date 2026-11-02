@@ -19,6 +19,11 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
+/**
+ * Servicio de gestión de paquetes.
+ * <p>Encapsula la lógica de negocio para el CRUD de paquetes,
+ * la verificación de visibilidad por rol y el rastreo por código de seguimiento.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class PaqueteService {

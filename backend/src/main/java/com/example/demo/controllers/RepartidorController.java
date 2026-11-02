@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.example.demo.entities.RepartidorEntity;
+import jakarta.validation.Valid;
 import com.example.demo.services.RepartidorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class RepartidorController {
 
 
     @PostMapping("/repartidor")
-    public ResponseEntity<RepartidorEntity> saveRepartidor(@jakarta.validation.Valid @RequestBody RepartidorEntity repartidor) {
+    public ResponseEntity<RepartidorEntity> saveRepartidor(@Valid @RequestBody RepartidorEntity repartidor) {
         RepartidorEntity nuevoRepartidor =  repartidorService.saveRepartidor(repartidor);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoRepartidor);
     }
@@ -47,7 +48,7 @@ public class RepartidorController {
     @PutMapping("/repartidor/{id}")
     public ResponseEntity<RepartidorEntity> updateRepartidor(
             @PathVariable Integer id,
-            @jakarta.validation.Valid @RequestBody RepartidorEntity repartidor
+            @Valid @RequestBody RepartidorEntity repartidor
     ) {
         RepartidorEntity repartidorActualizado = repartidorService.updateRepartidor(id, repartidor);
         return ResponseEntity.ok(repartidorActualizado);
@@ -55,7 +56,7 @@ public class RepartidorController {
 
 
     @DeleteMapping("/repartidor/{id}")
-    public ResponseEntity<RepartidorEntity> deleteRepartidor(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteRepartidor(@PathVariable Integer id) {
         repartidorService.deleteById(id);
         return ResponseEntity.noContent().build();
     }

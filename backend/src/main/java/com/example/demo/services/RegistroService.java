@@ -8,7 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 
-/** Public client self-registration: Keycloak user first, then the local profile, with compensation. */
+/**
+ * Servicio de registro público de clientes.
+ * <p>Orquesta la creación de la cuenta en Keycloak y del perfil local,
+ * con compensación (eliminación de la cuenta en Keycloak) si la inserción
+ * en la base de datos falla. El rol asignado es siempre {@code cliente}.</p>
+ */
 @Service
 @RequiredArgsConstructor
 public class RegistroService {

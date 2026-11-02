@@ -39,7 +39,7 @@ public class RutaController {
 
     @PostMapping
     @PreAuthorize("hasRole('DESPACHADOR')")
-    public ResponseEntity<RutaEntity> saveRuta(@jakarta.validation.Valid @RequestBody RutaEntity rutaEntity) {
+    public ResponseEntity<RutaEntity> saveRuta(@Valid @RequestBody RutaEntity rutaEntity) {
         RutaEntity nuevaRuta =  rutaService.saveRuta(rutaEntity);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaRuta);
     }
@@ -56,7 +56,7 @@ public class RutaController {
     @PreAuthorize("hasRole('DESPACHADOR')")
     public ResponseEntity<RutaEntity> updateRuta(
             @PathVariable Integer id,
-            @jakarta.validation.Valid @RequestBody RutaEntity rutaEntity
+            @Valid @RequestBody RutaEntity rutaEntity
     ) {
         RutaEntity rutaActualizada = rutaService.updateRuta(id, rutaEntity);
         return ResponseEntity.ok(rutaActualizada);
@@ -64,7 +64,7 @@ public class RutaController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('DESPACHADOR')")
-    public ResponseEntity<RutaEntity> deleteRuta(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteRuta(@PathVariable Integer id) {
         rutaService.deleteById(id);
         return ResponseEntity.noContent().build();
     }

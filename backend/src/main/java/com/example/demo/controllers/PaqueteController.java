@@ -19,6 +19,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controlador REST para la gestión de paquetes.
+ * <p>Expone operaciones CRUD, cambios de dirección, transiciones del
+ * ciclo de vida de entregas y rastreo público por código.</p>
+ */
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -41,7 +46,7 @@ public class PaqueteController {
 
     @PostMapping("/paquete")
     @PreAuthorize("hasAnyRole('CLIENTE','DESPACHADOR')")
-    public ResponseEntity<PaqueteEntity> savePaquete(@jakarta.validation.Valid @RequestBody PaqueteEntity paqueteEntity,
+    public ResponseEntity<PaqueteEntity> savePaquete(@Valid @RequestBody PaqueteEntity paqueteEntity,
                                                      @AuthenticationPrincipal Jwt jwt) {
         PaqueteEntity nuevoPaquete = paqueteService.registrar(paqueteEntity, AuthUser.from(jwt));
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoPaquete);
@@ -51,7 +56,7 @@ public class PaqueteController {
     @PreAuthorize("hasRole('DESPACHADOR')")
     public ResponseEntity<PaqueteEntity> updatePaquete(
             @PathVariable Integer id,
-            @jakarta.validation.Valid @RequestBody PaqueteEntity paqueteEntity,
+            @Valid @RequestBody PaqueteEntity paqueteEntity,
             @AuthenticationPrincipal Jwt jwt
     ) {
         paqueteEntity.setPaqueteId(id);

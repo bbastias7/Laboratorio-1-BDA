@@ -100,7 +100,7 @@ También probamos datos inválidos. Peso cero, negativo o letras no se guardan y
 ACCIÓN: Ejecutar pruebas breves en el formulario. Para capacidad, usar un paquete nuevo y una carga total superior al vehículo. La tabla es un plan de prueba; solo el caso de peso 0 tiene captura real.
 
 Diapositiva 22 / 12:40-13:10
-Las contribuciones. Felipe armó el script inicial de la base, las entidades, los repositorios, los servicios y los controladores. Patricio ajustó entidades y repositorios, hizo el CRUD básico, las restricciones de la base y completó el backend y los scripts. Benjamín creó la estructura del repositorio y el CRUD de los controladores restantes. Matías hizo las correcciones de la revisión, el manual de instalación, el frontend web, la paginación y el registro. Mario incorporó el dump de demostración, verificó su restauración y documentó el respaldo y el contraste con la rúbrica y el enunciado, con pruebas SQL, de API y de concurrencia. Héctor tiene a cargo la revisión de la entrega, la preparación de la demostración web y la exposición de seguridad, registro y paginación.
+Las contribuciones. Felipe armó el script inicial de la base, las entidades, los repositorios, los servicios y los controladores. Patricio ajustó entidades y repositorios, hizo el CRUD básico, las restricciones de la base y completó el backend y los scripts. Benjamín creó la estructura del repositorio y el CRUD de los controladores restantes. Matías hizo las correcciones de la revisión, el manual de instalación, el frontend web, la paginación y el registro. Mario incorporó el dump de demostración, verificó su restauración y documentó el respaldo y el contraste con la rúbrica y el enunciado, con pruebas SQL, de API y de concurrencia. Héctor participó en el apoyo y las pruebas del código, verificando el correcto funcionamiento de los flujos del sistema, añadiendo documentación Javadoc y JSDoc a los servicios y módulos clave, y en la gestión y coordinación del equipo fuera del repositorio, incluyendo la organización de tareas, la revisión de la entrega y la preparación de la exposición de seguridad, registro y paginación.
 ACCIÓN: Distinguir los aportes realizados de las responsabilidades de cierre; confirmar la preparación de la demostración antes de exponer.
 
 Diapositiva 23 / 13:10-13:50
@@ -154,7 +154,6 @@ Preparar sesiones separadas de cliente1, despachador y repartidor1 (contraseña 
 
 Alcance de los ejemplos
 Las capturas de las diapositivas 10, 16, 17, 18, 20 y 21 son reales, tomadas del sistema en ejecución local (frontend, API, Keycloak y PostgreSQL) con el flujo del enunciado. El 80 % de la diapositiva 10 es el valor que mostró esa base de demostración y puede cambiar al refrescar la vista. La tabla de datos inválidos (diapositiva 21) es un plan de prueba: solo el caso de peso 0 tiene captura. El código de las diapositivas se copió del repositorio, recortado con "..." donde se indica; las líneas largas se partieron solo para que quepan.
-Pendiente: completar el aporte de Héctor Berguño (diapositiva 22 y su texto hablado).
 
 Reparto de tiempo
 Matías Leiva: 1:55
