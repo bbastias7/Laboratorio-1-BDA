@@ -120,6 +120,34 @@ docker exec logistica-pg psql -U logistica -d logistica_g5 -v ON_ERROR_STOP=1 -f
 
 El script crea las tablas, la vista materializada, los procedimientos y los triggers, y carga datos de demostración: 5 perfiles de usuario, 2 centros de distribución, 2 repartidores, 1 vehículo y paquetes de ejemplo. Debe usarse una sola vez sobre una base vacía. Para reinstalar, elimine y vuelva a crear la base.
 
+### Alternativa: restaurar el dump de demostración
+
+`database/dump-demo.sql` es un dump completo generado con `pg_dump` de PostgreSQL 16: incluye esquema, procedimientos, triggers, vista materializada, secuencias y datos de prueba. Se generó en una base nueva a partir de `createDatabase.sql`, sin datos de las pruebas de integración ni cuentas reales.
+
+Después de crear una **base vacía** en el paso 2, puede restaurar este dump **en lugar del paso 3**. No ejecute ambos sobre la misma base ni lo use sobre una base con datos que quiera conservar.
+
+```bash
+PGPASSWORD=logistica psql -X -h localhost -p 5432 -U logistica -d logistica_g5 \
+  -v ON_ERROR_STOP=1 -f database/dump-demo.sql
+```
+
+Con el contenedor del paso 2:
+
+```bash
+docker exec -i logistica-pg psql -X -U logistica -d logistica_g5 \
+  -v ON_ERROR_STOP=1 < database/dump-demo.sql
+```
+
+El dump no crea roles ni la base y no incluye contraseñas de PostgreSQL ni el realm de Keycloak. Continúe con el paso 4 para importar `keycloak/logistica-g5-realm.json`, que contiene las cuentas de demostración correspondientes. Utilice un cliente `psql` 16 actualizado o posterior para restaurarlo.
+
+Comprobación de la restauración:
+
+```sql
+SELECT count(*) FROM usuario;              -- 5
+SELECT count(*) FROM centro_distribucion;  -- 2
+SELECT count(*) FROM paquete;              -- 5
+```
+
 ### 4. Iniciar Keycloak
 
 Con Docker (Windows, macOS y Linux). Ejecute el comando desde la raíz del repositorio:
