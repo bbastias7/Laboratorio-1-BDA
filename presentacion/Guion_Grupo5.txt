@@ -1,0 +1,166 @@
+GUION - GRUPO 5
+Objetivo: 14 minutos con demostración + 1 minuto de margen. Duración planificada: 13:55.
+Reparto sugerido en el orden de la portada. Acciones y preparación no se leen.
+Las diapositivas están en presentacion/Grupo5_Logistica.pptx (y PDF); las capturas, en presentacion/capturas/.
+
+INTEGRANTE 1: Matías Leiva
+
+Diapositiva 1 / 0:00-0:20
+Buenos días. Somos el Grupo 5 y presentamos el Laboratorio 1 de Bases de Datos Avanzadas: una plataforma de logística y seguimiento de envíos. Veremos el problema, la arquitectura, el código de la base de datos y de la API, y una demostración. Todo el código está en el repositorio que se ve en pantalla.
+ACCIÓN: Presentar al grupo y pasar a la introducción.
+
+Diapositiva 2 / 0:20-0:50
+Una empresa de reparto debe coordinar centros de distribución, vehículos, repartidores y rutas, y el cliente quiere saber dónde está su paquete. Nuestro objetivo fue construir ese sistema completo, con las reglas del negocio protegidas dentro de PostgreSQL. Lo usan tres roles: el cliente crea y rastrea envíos, el despachador asigna rutas y revisa reportes, y el repartidor registra entregas.
+ACCIÓN: Señalar el problema y el objetivo; nombrar los tres roles sin detallarlos.
+
+Diapositiva 3 / 0:50-1:30
+Este es el avance. Los diez requisitos del enunciado están implementados y cada fila indica dónde vive: el CRUD de todas las entidades, JWT con roles, los dos procedimientos almacenados, los dos triggers, la vista materializada, los índices, el rastreo y el reporte bajo ochenta y cinco por ciento. Además hay script de creación, datos de prueba y un README con la instalación. En la etapa final agregamos paginación y filtros en todos los listados, el registro de clientes, la creación de cuentas del personal y las correcciones de la revisión.
+ACCIÓN: Recorrer la columna "Dónde" sin leerla completa. Destacar lo agregado en la etapa final.
+
+Diapositiva 4 / 1:30-1:55
+Cada rol ve solo las operaciones que le corresponden. El cliente crea envíos, consulta los suyos y los rastrea. El despachador administra entidades, asigna rutas y revisa reportes y auditoría. El repartidor ve sus rutas, confirma entregas y registra fallas con su motivo. Los permisos se comprueban también en la API, no solo en la pantalla.
+ACCIÓN: Señalar una acción de cada rol.
+
+INTEGRANTE 2: Mario Nova
+
+Diapositiva 5 / 1:55-2:50
+Esta es la arquitectura, con cuatro componentes. React 18 con Vite presenta la interfaz en el puerto 5173. Llama por HTTP, con JSON, a una API Spring Boot 4 con Java 21, en el 8080, organizada en controlador, servicio y repositorio. Los repositorios usan JdbcTemplate: SQL explícito, sin ORM, contra PostgreSQL 16, donde viven las tablas, los procedimientos, los triggers, la vista materializada y los índices. La identidad la maneja Keycloak 26. Primero, React inicia sesión con PKCE y recibe un JWT. Segundo, Spring valida cada solicitud: firma, emisor y audiencia. Tercero, la API usa la Admin API de Keycloak para crear cuentas: el registro de clientes y las cuentas del personal.
+ACCIÓN: Seguir las flechas en orden: React, API, base de datos, y luego los tres usos de Keycloak. Explicar JWT como un token de identidad verificable.
+
+Diapositiva 6 / 2:50-3:35
+Un ejemplo: crear un envío. React valida los campos y convierte los decimales. Envía un POST a api barra paquete con JSON y el token. El servicio toma el dueño desde el JWT, fija el estado Registrado y guarda todo en una transacción. PostgreSQL inserta el paquete y su primer evento, y genera el código de seguimiento por defecto. La respuesta vuelve a React, que lo muestra para copiarlo.
+ACCIÓN: Recorrer ida y vuelta. JSON es el formato de datos; POST solicita crear el recurso.
+
+INTEGRANTE 3: Benjamín Bastías
+
+Diapositiva 7 / 3:35-4:15
+Este es el modelo relacional, con nueve tablas. Usuario guarda el rol y el identificador de Keycloak. Paquete es el centro del modelo: tiene estado, código, peso, volumen y fecha compromiso, y se enlaza a sí mismo con paquete_origen_id para el envío de retorno. Ruta une centro, repartidor y vehículo, y ruta_paquete guarda el resultado de cada intento. Evento de seguimiento es la línea de tiempo, y auditoria_direccion guarda los cambios de destino.
+ACCIÓN: *Mostrar el MR final de la base de datos en esta diapositiva.* Señalar la autorreferencia de paquete.
+
+Diapositiva 8 / 4:15-4:55
+Para el rastreo indexamos el código con un índice HASH, porque solo se busca por igualdad. El estado tiene un índice B-tree para filtros y listados. La línea de tiempo usa un índice compuesto por paquete y fecha, y un índice único parcial garantiza una sola asignación pendiente por paquete. El endpoint GET api tracking código busca el paquete por código y devuelve sus eventos ordenados por fecha; antes comprueba que el usuario pueda ver ese paquete.
+ACCIÓN: Señalar el WHERE codigo = ? y relacionarlo con el índice HASH.
+
+Diapositiva 9 / 4:55-5:30
+La vista materializada mv_rendimiento_entregas agrega por centro y repartidor las entregas totales, las entregas a tiempo, el porcentaje y los intentos promedio. Un índice único permite refrescarla con REFRESH CONCURRENTLY, sin bloquear las lecturas, mediante la función refrescar_mv_rendimiento. Spring la ejecuta cada día a las tres de la mañana con @Scheduled, y el despachador puede refrescarla a mano. Ganamos reportes baratos a cambio de datos con hasta un día de antigüedad.
+ACCIÓN: Señalar FILTER, el índice único y el cron. No afirmar que la API informa la hora del último refresco: no la informa.
+
+Diapositiva 10 / 5:30-6:05
+El endpoint de alertas cruza esa vista y devuelve repartidores y centros bajo el umbral, de ochenta y cinco por ciento por defecto. En esta captura real, con umbral ochenta y cinco, el centro de Santiago aparece con ochenta por ciento: ocho entregas a tiempo de diez. El despachador puede cambiar el umbral y refrescar la vista.
+ACCIÓN: Señalar el 80 % y la fila "8 de 10". La cifra es de la base local de demostración y cambia si se refresca la vista con nuevas entregas.
+
+INTEGRANTE 4: Patricio Durán
+
+Diapositiva 11 / 6:05-6:40
+El procedimiento asignar_ruta trabaja en una sola transacción. Valida que haya paquetes y que el repartidor y el vehículo pertenezcan al centro, y bloquea los paquetes por id para que dos asignaciones no choquen. Luego inserta la ruta, asocia los paquetes, los cambia a En reparto y registra un evento por paquete. Si algo falla, incluido el trigger de capacidad, todo se revierte.
+ACCIÓN: Señalar los cuatro pasos de la derecha sobre el código.
+
+Diapositiva 12 / 6:40-7:15
+Este fragmento es del trigger de capacidad. Se ejecuta antes de insertar cada fila en ruta_paquete. NEW es la fila que se intenta insertar. La función suma la carga existente más el paquete nuevo; si el peso o el volumen superan la capacidad del vehículo, RAISE EXCEPTION rechaza la operación con el código 23514 y la asignación completa se revierte. Exactamente el límite se acepta.
+ACCIÓN: Señalar NEW, OR, ERRCODE y RETURN NEW. Ejemplo: límite de 10 kg, carga propuesta de 11 kg. Exactamente 10 kg se acepta si el volumen cumple.
+
+Diapositiva 13 / 7:15-7:50
+El procedimiento de entrega fallida comprueba que el paquete esté pendiente en esa ruta, registra el fallo e incrementa los intentos. La condición es mayor que tres: los primeros tres fallos reprograman la entrega para el día siguiente y el cuarto devuelve el paquete a origen y crea un paquete de retorno enlazado al original. La fecha compromiso nunca se modifica.
+ACCIÓN: Leer las dos primeras líneas. Aclarar que := asigna y que el cuarto fallo activa la condición. Mostrar el recuadro naranja como el caso de retorno.
+
+Diapositiva 14 / 7:50-8:20
+Este trigger audita los cambios de destino. Si el paquete ya fue despachado y la dirección cambia, guarda la dirección anterior, la nueva, el usuario y la fecha en auditoria_direccion. En estados finales, el cambio queda bloqueado. Un segundo trigger hace inmutable la auditoría: bloquea UPDATE y DELETE sobre sus filas.
+ACCIÓN: Señalar antes y después. No afirmar que cualquier edición previa al despacho se audita: solo después de despachado.
+
+INTEGRANTE 5: Héctor Berguño
+
+Diapositiva 15 / 8:20-8:50
+La API verifica identidad y acceso en capas. Primero, Spring valida el JWT: firma, emisor y audiencia, y vincula el sub con el perfil local. Segundo, PreAuthorize restringe por rol. Tercero, este fragmento: esVisible comprueba que el paquete pertenezca al usuario. Conocer un código no concede acceso a un envío ajeno. La identidad responde quién eres; la autorización, qué puedes hacer.
+ACCIÓN: Explicar p.getPaqueteId(), u.rol() y u.uid(). El control ocurre en el servidor, no en la pantalla.
+
+Diapositiva 16 / 8:50-9:20
+El registro público solo crea clientes. El formulario de React envía POST api auth registro. El backend crea el usuario en Keycloak con la Admin API, y el rol cliente se fuerza en el servidor: nunca viene del formulario. Luego inserta el perfil en la tabla usuario. Si ese insert falla, se elimina el usuario de Keycloak para no dejar cuentas huérfanas. El formulario no permite elegir rol.
+ACCIÓN: Mostrar la captura de /registro y seguir los cuatro pasos. No crear cuentas nuevas durante la exposición.
+
+Diapositiva 17 / 9:20-9:50
+El personal no se registra solo. El despachador entra a Usuarios, elige Crear usuario y define nombre, correo, rol y una contraseña temporal. La API crea la cuenta en Keycloak con ese rol, y Keycloak obliga a cambiar la contraseña en el primer ingreso. Después inserta el perfil en la tabla usuario; si falla, elimina la cuenta de Keycloak. Editar sincroniza nombre, correo y rol, y eliminar borra también la cuenta. Un despachador no puede eliminarse ni cambiar su propio rol.
+ACCIÓN: Mostrar la captura del diálogo Crear usuario (real, sin enviar). No crear cuentas durante la exposición. Aclarar que el registro público no puede elegir rol.
+
+Diapositiva 18 / 9:50-10:15
+Todos los listados aceptan page y size, más un filtro simple por recurso. Con page, la respuesta trae solo esa página y el total viaja en el encabezado X-Total-Count, que CORS expone. Sin page, devuelve la lista completa, por compatibilidad. En la captura se ven los filtros y el paginador del despachador.
+ACCIÓN: Señalar el filtro, el contador de registros y el paginador "Página 1 de 5".
+
+Diapositiva 19 / 10:15-10:45
+Antes de enviar, el formulario valida el formato. parseDecimal acepta coma o punto y devuelve NaN con letras o negativos. positiveDecimalError exige un valor mayor que cero y hasta dos decimales. Si hay errores, enfoca el campo y no se hace el POST. Cero, menos uno y abc no se guardan; dos coma cinco sí. Además, la base de datos tiene un CHECK de peso mayor que cero.
+ACCIÓN: Explicar raw, NaN y return. Probar 0, -1 y abc en peso; corregir a 2,5. No decir que inputMode por sí solo valida.
+
+INTEGRANTE 6: Felipe Bobadilla
+
+Diapositiva 20 / 10:45-12:10
+Ahora la demostración, con datos reales. Como cliente creamos un envío de dos coma cinco kilos y cero coma cuatro metros cúbicos, con fecha futura, y la página entrega el código de seguimiento. Como despachador elegimos centro, repartidor y vehículo compatibles, marcamos el paquete y asignamos la ruta: el paquete pasa a En reparto. Como repartidor, abrimos Mis entregas y marcamos la entrega realizada. Volvemos al cliente, rastreamos el código y vemos la línea de tiempo: Registrado, En reparto y Entregado.
+ACCIÓN: Demostración en vivo de unos 85 segundos con tres sesiones listas (cliente1, despachador, repartidor1). Si falla la conexión, narrar con las cuatro capturas: son reales, tomadas del sistema en ejecución, y avisar que no se está ejecutando en ese momento.
+
+Diapositiva 21 / 12:10-12:40
+También probamos datos inválidos. Peso cero, negativo o letras no se guardan y muestran un error; una fecha de hoy o anterior se rechaza; y una carga sobre el límite del vehículo se rechaza en la asignación. Corregimos el dato y el flujo válido funciona.
+ACCIÓN: Ejecutar pruebas breves en el formulario. Para capacidad, usar un paquete nuevo y una carga total superior al vehículo. La tabla es un plan de prueba; solo el caso de peso 0 tiene captura real.
+
+Diapositiva 22 / 12:40-13:10
+Las contribuciones. Felipe armó el script inicial de la base, las entidades, los repositorios, los servicios y los controladores. Patricio ajustó entidades y repositorios, hizo el CRUD básico, las restricciones de la base y completó el backend y los scripts. Benjamín creó la estructura del repositorio y el CRUD de los controladores restantes. Matías hizo las correcciones de la revisión, el manual de instalación, el frontend web, la paginación y el registro. [A CONFIRMAR: aporte de Mario Nova y de Héctor Berguño].
+ACCIÓN: PENDIENTE: completar el aporte de Mario Nova y Héctor Berguño en la diapositiva y en este texto antes de exponer.
+
+Diapositiva 23 / 13:10-13:50
+Conclusiones. Las reglas del negocio dentro de la base, con triggers y procedimientos, no se pueden saltar desde la API. JWT más validación de propiedad separa identidad de autorización. La vista materializada cambia frescura por reportes baratos, con un refresco diario. Aprendimos que trabajar sin ORM dejó el SQL explícito, y que un README instalable es un requisito. Como próximos pasos: pg_cron, rastreo público y notificaciones.
+ACCIÓN: Cerrar sin repetir cada tecnología.
+
+Diapositiva 24 / 13:50-13:55
+Muchas gracias. Dejamos el repositorio en pantalla y quedamos atentos a sus preguntas.
+ACCIÓN: Dejar visible el repositorio. Hay un minuto de margen hasta los 15 minutos.
+
+PREPARACIÓN PARA PREGUNTAS (FUERA DEL TEXTO HABLADO)
+
+Diapositiva 8: índices y rastreo
+HASH sirve solo para igualdad (codigo = ?), que es lo que hace el rastreo; no sirve para rangos ni ORDER BY. Si hiciera falta buscar por prefijo se cambiaría a B-tree. idx_paquete_estado acelera los filtros por estado. El índice compuesto (paquete_id, fecha, id) deja los eventos ya ordenados. El índice único parcial uq_ruta_paquete_pendiente solo cubre filas con resultado Pendiente, así se conserva el historial pero hay una sola asignación activa. Revisar database/01-dbCreate.sql, EventoSeguimientoRepository.rastreoPaquete() y PaqueteService.rastrear().
+
+Diapositiva 9: vista materializada
+La vista guarda el resultado calculado; no se actualiza sola al insertar entregas. REFRESH CONCURRENTLY exige un índice único (idx_mv_rendimiento_centro_repartidor) y una vista ya poblada; permite leer durante el refresco. El porcentaje es entregas a tiempo sobre entregas exitosas (NULLIF evita dividir por cero). Los centros se recalculan sumando conteos, no promediando porcentajes. El cron del Spring es 0 0 3 * * * en zona America/Santiago y se puede cambiar con REFRESH_CRON; el pg_cron del script está solo como comentario. Revisar database/02-materialViews.sql y ReporteService.
+
+Diapositiva 10: reporte de alertas
+GET /api/reportes/alertas?umbral=85 solo lo puede llamar el despachador. Compara 100 * entregas_a_tiempo / entregas_totales con el umbral. El 80 % de la captura (8 de 10 en CD Santiago G5) salió de la base local de demostración; si se refresca la vista tras nuevas entregas puede cambiar. Revisar ReporteRepository y ReporteController.
+
+Diapositiva 11: procedimiento asignar_ruta
+FOR UPDATE por id ordenado evita interbloqueos entre asignaciones concurrentes. El INOUT p_ruta_id devuelve la ruta creada. ERRCODE 23514 es violación de restricción CHECK y P0002 es "no encontrado". La capacidad la valida el trigger por cada fila de ruta_paquete, no el procedimiento. Revisar database/03-storedProced.sql, asignar_ruta().
+
+Diapositiva 12: trigger de capacidad
+BEFORE INSERT actúa antes de guardar cada fila de ruta_paquete. NEW es esa fila. total_weight y total_volume incluyen la carga existente y el paquete nuevo. OR rechaza si cualquiera supera su límite. > permite igualdad. Los símbolos % son sustituciones del mensaje. 23514 es el código SQLSTATE de restricción. RAISE EXCEPTION interrumpe la operación; RETURN NEW permite continuar si no hubo error. Antes del fragmento, FOR UPDATE OF r,v bloquea ruta y vehículo y COALESCE convierte una suma vacía en cero. Revisar database/04-triggers.sql, check_route_capacity().
+
+Diapositiva 13: procedimiento de fallos
+:= asigna el contador incrementado. Con intentos inicialmente en cero, > 3 se cumple al cuarto fallo. El contador es de fallos, no de éxitos. Se registra el resultado y un evento, se reprograma un día o se crea el retorno hacia el centro de origen con fecha compromiso a tres días. No se modifica el compromiso original. Revisar database/03-storedProced.sql, registrar_entrega_fallida().
+
+Diapositiva 14: auditoría de destino
+El trigger es BEFORE UPDATE OF direccion_destino. Solo audita si OLD.despachado_at no es nulo y la dirección cambió; el usuario viene de la variable de sesión app.user_id que fija el servicio. En Entregado o Devuelto a origen el cambio se rechaza. El trigger auditoria_inmutable (BEFORE UPDATE OR DELETE) rechaza cualquier modificación de la tabla de auditoría. Revisar database/04-triggers.sql.
+
+Diapositiva 15: seguridad y acceso al rastreo
+SecurityConfig valida firma con el JWKS de Keycloak, emisor y audiencia; si el sub no tiene perfil local o el rol del token no coincide con el del perfil, rechaza con 401. ! significa negación. p.getPaqueteId() identifica el paquete. u.rol() y u.uid() describen al usuario autenticado. Si esVisible devuelve false, se lanza AccessDeniedException. El código de seguimiento no reemplaza los permisos. Revisar backend/src/main/java/com/example/demo/config/SecurityConfig.java y services/PaqueteService.java, rastrear().
+
+Diapositiva 16: registro de usuario
+El endpoint es público (permitAll solo para POST /api/auth/registro). RegistroService normaliza el correo, rechaza duplicados (409), crea el usuario en Keycloak con la cuenta de servicio logistica-admin (roles manage-users y view-realm) y asigna el rol cliente fijo. Si el INSERT falla, KeycloakAdminClient.eliminarUsuario compensa. Revisar RegistroService, KeycloakAdminClient y AuthController.
+
+Diapositiva 17: cuentas del personal
+Por qué el personal no se registra solo: el rol define los permisos; si el formulario público pudiera elegirlo, cualquiera se daría el rol despachador (escalada de privilegios). /registro fija el rol cliente en el servidor (RegistroService); crear repartidores y despachadores exige ser despachador (UsuarioController, hasRole DESPACHADOR). Contraseña temporal: KeycloakAdminClient la envía con temporary = true, así Keycloak exige cambiarla en el primer inicio de sesión. Compensación: si el INSERT en usuario falla, UsuarioService llama a keycloak.eliminarUsuario, igual que en el registro. Se envía contraseña (mínimo 8) o keycloakId, no ambos: vincular una cuenta existente por keycloakId no toca Keycloak. PUT sincroniza nombre, correo y rol con Keycloak; DELETE elimina también la cuenta. Un despachador no puede borrarse ni cambiarse el rol (409). El realm tiene editUsernameAllowed para sincronizar el correo, que es el nombre de usuario. Revisar UsuarioService, KeycloakAdminClient y UsuarioController.
+
+Diapositiva 18: paginación
+Consulta.listar arma el COUNT sobre el mismo WHERE que el SELECT, usa parámetros enlazados y un ORDER BY fijo por clave primaria (nunca desde la entrada del usuario). El tamaño por defecto es 20 y se limita a 1..100. Sin page se devuelve la lista completa. Pagina.responder() pone el total en X-Total-Count y SecurityConfig lo expone por CORS. Revisar repositories/Consulta.java y dto/Pagina.java.
+
+Diapositiva 19: formulario y números
+raw es la entrada. ?? reemplaza null o undefined por texto vacío. trim elimina espacios externos y replace convierte la coma decimal en punto. La expresión regular exige dígitos y una parte decimal opcional: rechaza letras, signos y notación exponencial. test devuelve booleano. El operador ternario elige Number(s) o NaN. Cero pasa el formato pero positiveDecimalError lo rechaza con n <= 0. validate devuelve los mensajes de campos inválidos. Object.keys(found).length cuenta esos campos; return sale antes del POST. La validación completa también limita dos decimales y tamaño. Revisar frontend/src/lib/numbers.js y frontend/src/pages/cliente/ClienteNuevo.jsx.
+
+Ensayo de la demostración
+Preparar sesiones separadas de cliente1, despachador y repartidor1 (contraseña de prueba en el README). Tener centro, vehículo y repartidor compatibles del mismo centro. Crear el paquete con fecha futura y copiar su código real. Probar 0, -1 y abc por separado en peso y volumen y luego corregirlos. Para capacidad, usar otro paquete y una carga total superior al límite. No reutilizar un paquete entregado. No crear cuentas nuevas en /registro durante la exposición. Ensayar con cronómetro. Si falta conexión, narrar con las capturas de la diapositiva 20 y avisar que no se está ejecutando en ese momento.
+
+Alcance de los ejemplos
+Las capturas de las diapositivas 10, 16, 17, 18, 20 y 21 son reales, tomadas del sistema en ejecución local (frontend, API, Keycloak y PostgreSQL) con el flujo del enunciado. El 80 % de la diapositiva 10 es el valor que mostró esa base de demostración y puede cambiar al refrescar la vista. La tabla de datos inválidos (diapositiva 21) es un plan de prueba: solo el caso de peso 0 tiene captura. El código de las diapositivas se copió del repositorio, recortado con "..." donde se indica; las líneas largas se partieron solo para que quepan.
+Pendiente: completar el aporte de Mario Nova y Héctor Berguño (diapositiva 22 y su texto hablado).
+
+Reparto de tiempo
+Matías Leiva: 1:55
+Mario Nova: 1:40
+Benjamín Bastías: 2:30
+Patricio Durán: 2:15
+Héctor Berguño: 2:25
+Felipe Bobadilla: 3:10
+Total: 13:55
