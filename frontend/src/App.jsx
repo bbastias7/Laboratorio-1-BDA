@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { LoginRoute, RequireAuth, RequireRole } from './auth/guards.jsx';
 import { AppShell } from './components/layout/AppShell.jsx';
 import { LandingPage } from './pages/LandingPage.jsx';
+import { RegistroPage } from './pages/RegistroPage.jsx';
 import { ShipmentPage } from './pages/ShipmentPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
 import { ClienteRoutes } from './pages/cliente/ClienteRoutes.jsx';
@@ -17,6 +18,7 @@ export function App() {
         <Route path="rastreo" element={<ShipmentPage />} />
         <Route path="rastreo/:codigo" element={<ShipmentPage />} />
         <Route path="login" element={<LoginRoute />} />
+        <Route path="registro" element={<RegistroPage />} />
 
         <Route element={<RequireAuth />}>
           <Route element={<RequireRole roles={['cliente']} />}>

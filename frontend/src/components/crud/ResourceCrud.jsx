@@ -26,14 +26,18 @@ const lower = (s) => s.charAt(0).toLowerCase() + s.slice(1);
  *    getId(row)                             stable React key
  *    describe(row)                          short text naming a row in the delete confirmation
  *    deleteNote?                            what deleting a row implies (shown in the confirmation)
- *    api: { list(signal), create(body), update(row, body), remove(row) }
+ *    api: { page(query, signal) -> {items, total}, create(body), update(row, body), remove(row) }
+ *             page() receives { page (0-based), size, q?, ...filters } and the server paginates (X-Total-Count)
  *    lookups?: ['centros', ...]             reference lists loaded in parallel (see lookups.js)
  *    columns: [{ key, header, mono?, numeric?, primary?, render?(row, ctx), text?(row, ctx) }]
- *    fields:  [{ name, label, type, required?, max?, hint?, lookup?, options?, numeric?, modes?, readOnlyOn?, wide? }]
- *             type: 'text' | 'email' | 'decimal' | 'select' | 'textarea' | 'datetime-local'
+ *    fields:  [{ name, label, type, required?, min?, max?, hint?, lookup?, options?, numeric?, modes?, readOnlyOn?, wide? }]
+ *             type: 'text' | 'email' | 'password' | 'decimal' | 'select' | 'textarea' | 'datetime-local'
  *    buildPayload?(values, { mode, row })   shape the request body (default: the field values)
  *    canEdit?(row), canDelete?(row)         per-row availability
- *    newestFirst?                           sort by descending id
+ *    afterCreate?(body, created)            message shown (as an info toast) after a successful create
+ *    search?: { hint }                      shows a text search sent to the server as `q`
+ *    filters?: [{ name, label, param?, lookup?, options? }]   select filters sent as query params (param defaults to name)
+ *    newestFirst?                           rows come ordered by id, so after a create jump to the last page
  *  }
  *
  * ctx = { lookups, label(lookupKey, id) } is passed to render/text/options functions.
@@ -41,14 +45,25 @@ const lower = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 export function ResourceCrud({ config }) {
   const toast = useToast();
   useDocumentTitle(config.title);
-  const { data, error, loading, reload } = useAsync(async (signal) => {
-    const [rows, lookups] = await Promise.all([config.api.list(signal), loadLookups(config.lookups ?? [], signal)]);
-    return { rows, lookups };
-  }, [config.path]);
-
-  const ctx = useMemo(() => ({ lookups: data?.lookups ?? {}, label: (k, id) => labelOf(data?.lookups, k, id) }), [data]);
   const [query, setQuery] = useState('');
+  const [q, setQ] = useState(''); // the search text actually sent to the server (debounced)
+  const [filters, setFilters] = useState({});
   const [page, setPage] = useState(1);
+  const filterKey = JSON.stringify(filters);
+
+  const lookupState = useAsync((signal) => loadLookups(config.lookups ?? [], signal), [config.path]);
+  const listState = useAsync((signal) => config.api.page({
+    ...filters, q: q || undefined, page: page - 1, size: PAGE_SIZE,
+  }, signal), [config.path, page, q, filterKey]);
+  const reload = () => { lookupState.reload(); listState.reload(); };
+  const error = listState.error ?? lookupState.error;
+  const loading = listState.loading || lookupState.loading;
+  const data = useMemo(
+    () => (listState.data && lookupState.data ? { rows: listState.data.items, total: listState.data.total, lookups: lookupState.data } : null),
+    [listState.data, lookupState.data],
+  );
+
+  const ctx = useMemo(() => ({ lookups: data?.lookups ?? {}, label: (k, id) => labelOf(data?.lookups, k, id) }), [data?.lookups]);
   const [editing, setEditing] = useState(null); // { mode: 'create' | 'edit', row }
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -76,21 +91,30 @@ export function ResourceCrud({ config }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingText, loading]);
 
-  const rows = useMemo(() => {
-    const all = [...(data?.rows ?? [])];
-    if (config.newestFirst) all.reverse();
-    const q = query.trim().toLowerCase();
-    if (!q) return all;
-    return all.filter((row) => config.columns
-      .map((c) => (c.text ? c.text(row, ctx) : String(row[c.key] ?? '')))
-      .join(' ').toLowerCase().includes(q));
-  }, [data, query, config, ctx]);
+  // Debounce the search so each keystroke does not hit the API.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const next = query.trim();
+      if (next !== q) { setQ(next); setPage(1); }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query, q]);
 
-  const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const current = Math.min(page, pages);
-  const pageRows = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const pageRows = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const filtering = !!q || Object.values(filters).some(Boolean);
 
-  const done = (verb) => {
+  // A delete (or a filter change) can leave the current page past the end: step back to the last page that exists.
+  useEffect(() => {
+    if (!loading && data && page > pages) setPage(pages);
+  }, [loading, data, page, pages]);
+
+  const clearFilters = () => { setQuery(''); setQ(''); setFilters({}); setPage(1); };
+  const filterOptions = (f) => (f.options ?? ctx.lookups[f.lookup] ?? []);
+
+  const done = (verb, { created = false } = {}) => {
+    if (created && config.newestFirst) setPage(Math.floor(total / PAGE_SIZE) + 1);
     const word = config.fem ? verb.fem : verb.masc;
     const text = `${config.singular.charAt(0).toUpperCase()}${config.singular.slice(1)} ${word}`;
     setStatusText('');
@@ -133,7 +157,7 @@ export function ResourceCrud({ config }) {
         {statusText && <Alert tone="success" title={statusText} />}
       </div>
 
-      {loading && !data && <Loading label={`Cargando ${lower(config.title)}`} />}
+      {loading && !data && !error && <Loading label={`Cargando ${lower(config.title)}`} />}
       {error && (
         <ErrorState kind={errorKind(error)} title={`No pudimos cargar ${lower(config.title)}`} message={error.message} action={{ label: 'Reintentar', onClick: reload }} />
       )}
@@ -141,43 +165,58 @@ export function ResourceCrud({ config }) {
       {data && (
         <>
           <div className="toolbar">
-            <Field label={`Buscar en ${lower(config.title)}`}>
-              <TextInput type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} autoComplete="off" />
-            </Field>
-            <p className="pager" role="status">{rows.length} {rows.length === 1 ? 'registro' : 'registros'}</p>
+            {config.search && (
+              <Field label={`Buscar en ${lower(config.title)}`} hint={config.search.hint}>
+                <TextInput type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
+              </Field>
+            )}
+            {(config.filters ?? []).map((f) => (
+              <Field key={f.name} label={f.label}>
+                <Select
+                  value={filters[f.param ?? f.name] ?? ''}
+                  onChange={(e) => { setFilters((cur) => ({ ...cur, [f.param ?? f.name]: e.target.value })); setPage(1); }}
+                >
+                  <option value="">Todos</option>
+                  {filterOptions(f).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </Select>
+              </Field>
+            ))}
+            <p className="pager" role="status">{total} {total === 1 ? 'registro' : 'registros'}</p>
           </div>
 
-          {rows.length === 0 ? (
-            data.rows.length === 0 ? (
-              <EmptyState icon="list" title={`Aún no hay ${lower(config.title)}`} message={`Crea el primer registro con el botón «Crear ${config.singular}».`} />
+          {total === 0 && !loading ? (
+            filtering ? (
+              <EmptyState icon="search" title="Sin resultados" message="Ningún registro coincide con la búsqueda o los filtros." action={{ label: 'Quitar filtros', onClick: clearFilters }} />
             ) : (
-              <EmptyState icon="search" title="Sin resultados" message="Ningún registro coincide con la búsqueda." action={{ label: 'Quitar búsqueda', onClick: () => setQuery('') }} />
+              <EmptyState icon="list" title={`Aún no hay ${lower(config.title)}`} message={`Crea el primer registro con el botón «Crear ${config.singular}».`} />
             )
           ) : (
-            <DataTable
-              dense
-              caption={config.title}
-              columns={columns}
-              rows={pageRows}
-              rowKey={config.getId}
-              rowActions={(row) => hasActions(row) && (
-                <span className="row-actions">
-                  {(config.canEdit?.(row) ?? true) && (
-                    <Button size="sm" variant="secondary" icon="edit" onClick={() => setEditing({ mode: 'edit', row })} aria-label={`Editar ${config.describe(row)}`}>Editar</Button>
-                  )}
-                  {(config.canDelete?.(row) ?? true) && (
-                    <Button size="sm" variant="ghost" icon="trash" onClick={() => { setDeleting(row); setDeleteError(null); }} aria-label={`Eliminar ${config.describe(row)}`}>Eliminar</Button>
-                  )}
-                </span>
-              )}
-            />
+            <div aria-busy={loading || undefined} className={loading ? 'is-refreshing' : undefined}>
+              <DataTable
+                dense
+                caption={config.title}
+                columns={columns}
+                rows={pageRows}
+                rowKey={config.getId}
+                rowActions={(row) => hasActions(row) && (
+                  <span className="row-actions">
+                    {(config.canEdit?.(row) ?? true) && (
+                      <Button size="sm" variant="secondary" icon="edit" onClick={() => setEditing({ mode: 'edit', row })} aria-label={`Editar ${config.describe(row)}`}>Editar</Button>
+                    )}
+                    {(config.canDelete?.(row) ?? true) && (
+                      <Button size="sm" variant="ghost" icon="trash" onClick={() => { setDeleting(row); setDeleteError(null); }} aria-label={`Eliminar ${config.describe(row)}`}>Eliminar</Button>
+                    )}
+                  </span>
+                )}
+              />
+            </div>
           )}
 
-          {pages > 1 && (
-            <nav className="pager" aria-label="Paginación">
-              <Button size="sm" variant="secondary" onClick={() => setPage(current - 1)} disabled={current <= 1}>Anterior</Button>
-              <span>Página {current} de {pages}</span>
-              <Button size="sm" variant="secondary" onClick={() => setPage(current + 1)} disabled={current >= pages}>Siguiente</Button>
+          {total > 0 && (
+            <nav className="pager pager-nav" aria-label="Paginación">
+              <Button variant="secondary" onClick={() => setPage(page - 1)} disabled={page <= 1 || loading}>Anterior</Button>
+              <span aria-live="polite">Página {Math.min(page, pages)} de {pages}</span>
+              <Button variant="secondary" onClick={() => setPage(page + 1)} disabled={page >= pages || loading}>Siguiente</Button>
             </nav>
           )}
         </>
@@ -196,7 +235,15 @@ export function ResourceCrud({ config }) {
             row={editing.row}
             ctx={ctx}
             onCancel={() => setEditing(null)}
-            onSaved={() => { setEditing(null); done(editing.mode === 'edit' ? { masc: 'actualizado', fem: 'actualizada' } : { masc: 'creado', fem: 'creada' }); }}
+            onSaved={(body) => {
+              setEditing(null);
+              if (editing.mode === 'edit') done({ masc: 'actualizado', fem: 'actualizada' });
+              else {
+                done({ masc: 'creado', fem: 'creada' }, { created: true });
+                const note = config.afterCreate?.(body);
+                if (note) toast.info(note);
+              }
+            }}
           />
         )}
       </Dialog>
@@ -255,6 +302,7 @@ function validateValues(fields, values, mode, row, ctx) {
       return;
     }
     if (f.max && text.length > f.max) errors[f.name] = `Admite hasta ${f.max} caracteres.`;
+    else if (f.min && text.length < f.min) errors[f.name] = `Debe tener al menos ${f.min} caracteres.`;
     else if (f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) errors[f.name] = 'Ingresa un correo válido, por ejemplo nombre@dominio.cl.';
     else if (f.type === 'select' && !fieldOptions(f, values, row, ctx).some((o) => String(o.value) === text)) errors[f.name] = `Elige ${label} de la lista.`;
   });
@@ -303,7 +351,7 @@ function ResourceForm({ config, mode, row, ctx, onCancel, onSaved }) {
       const body = config.buildPayload ? config.buildPayload(base, { mode, row }) : base;
       if (mode === 'edit') await config.api.update(row, body);
       else await config.api.create(body);
-      onSaved();
+      onSaved(body);
     } catch (err) {
       const explained = explainError(err);
       const m = /^(\w+): (.+)$/.exec(explained.message);
@@ -343,7 +391,7 @@ function ResourceForm({ config, mode, row, ctx, onCancel, onSaved }) {
           } else if (f.type === 'decimal') {
             control = <TextInput {...common} inputMode="decimal" autoComplete="off" />;
           } else {
-            control = <TextInput {...common} type={f.type === 'email' ? 'email' : f.type} maxLength={f.max} autoComplete="off" />;
+            control = <TextInput {...common} type={f.type === 'email' ? 'email' : f.type} maxLength={f.max} autoComplete={f.type === 'password' ? 'new-password' : 'off'} />;
           }
           return (
             <Field key={f.name} label={f.label} required={f.required && !disabled} error={errors[f.name]} hint={f.hint} className={f.wide ? 'field-wide' : ''}>

@@ -46,17 +46,22 @@
 .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-5) var(--space-6); }
 .toolbar .field { min-width: min(100%, 14rem); flex: 1 1 14rem; max-width: 24rem; }
 .toolbar-spacer { flex: 1; }
+
 .pager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); color: var(--color-text-secondary); font-size: var(--typography-body-sm-size); }
+.pager-nav { justify-content: space-between; }
+.is-refreshing { opacity: 0.6; transition: opacity var(--duration-fast) ease; }
 
 /* Data table */
-.table-wrap { width: 100%; }
+.table-wrap { width: 100%; overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; font-size: var(--typography-body-sm-size); }
 .table th {
   text-align: left; padding: var(--space-4) var(--space-5); font-size: var(--typography-caption-size); font-weight: var(--font-weight-semibold);
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-secondary);
   border-bottom: var(--border-width-strong) solid var(--color-border-strong); white-space: nowrap;
 }
-.table td { padding: var(--space-5); border-bottom: var(--border-width-hairline) solid var(--color-border-subtle); vertical-align: middle; overflow-wrap: anywhere; }
+/* break-word keeps words and ids whole; a table too wide for its container scrolls inside .table-wrap. */
+.table td { padding: var(--space-5); border-bottom: var(--border-width-hairline) solid var(--color-border-subtle); vertical-align: middle; overflow-wrap: break-word; }
+.id-short { white-space: nowrap; } /* "…" is a line-break opportunity; an abbreviated id reads as one token */
 .table-dense td { padding: var(--space-4) var(--space-5); }
 .table .num, .table th.num { text-align: right; }
 .table td.mono { font-size: var(--typography-code-size); }
@@ -64,12 +69,14 @@
 .cell-actions { white-space: nowrap; text-align: right; }
 .cell-actions .row-actions { display: inline-flex; gap: var(--space-3); }
 .row-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: flex-end; }
+/* Action labels never wrap, so the text columns take the squeeze instead of breaking "Editar" mid-word. */
+.row-actions .btn { white-space: nowrap; overflow-wrap: normal; }
 
 @media (max-width: 599px) {
   .table, .table tbody, .table tr, .table td { display: block; width: 100%; }
   .table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
   .table tr { padding: var(--space-5) 0; border-bottom: var(--border-width-hairline) solid var(--color-border-strong); }
-  .table td { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-6); padding: var(--space-3) 0; border: 0; text-align: right; }
+  .table td { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-6); padding: var(--space-3) 0; border: 0; text-align: right; overflow-wrap: anywhere; }
   .table td::before {
     content: attr(data-label); flex: none; max-width: 45%; text-align: left; font-size: var(--typography-caption-size);
     font-weight: var(--font-weight-semibold); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-text-secondary);

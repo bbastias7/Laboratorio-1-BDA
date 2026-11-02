@@ -1,6 +1,10 @@
+import { useEffect, useRef, useState } from 'react';
+
 /**
  * Responsive table. From 600 px up it is a normal table; below, every row becomes a stacked block and each cell
  * prints its column header (data-label). ARIA roles are set explicitly so the stacked layout keeps table semantics.
+ * A table wider than its container scrolls inside the wrapper (never the page); only then the wrapper becomes a
+ * focusable named region so keyboard users can scroll it.
  *
  * Props:
  *  - caption: accessible name of the table (visually hidden)
@@ -10,8 +14,26 @@
  *  - dense: smaller row height (desktop operations tables)
  */
 export function DataTable({ caption, columns, rows, rowKey, rowActions, dense = false, className = '' }) {
+  const wrapRef = useRef(null);
+  const [scrollable, setScrollable] = useState(false);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return undefined;
+    const measure = () => setScrollable(wrap.scrollWidth > wrap.clientWidth + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(wrap);
+    if (wrap.firstElementChild) observer.observe(wrap.firstElementChild);
+    return () => observer.disconnect();
+  }, [rows, columns]);
+
   return (
-    <div className={`table-wrap ${className}`.trim()}>
+    <div
+      ref={wrapRef}
+      className={`table-wrap ${className}`.trim()}
+      {...(scrollable ? { role: 'region', 'aria-label': `${caption} (desplazable horizontalmente)`, tabIndex: 0 } : {})}
+    >
       <table className={`table ${dense ? 'table-dense' : ''}`} role="table">
         <caption className="sr-only">{caption}</caption>
         <thead role="rowgroup">

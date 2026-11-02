@@ -47,19 +47,54 @@ async function toApiError(res) {
  * - 204: resolves to null.
  * @returns {Promise<any>} parsed JSON body
  */
-export async function request(path, { method = 'GET', body, query, signal } = {}) {
+export async function request(path, options = {}) {
+  return (await execute(path, options)).data;
+}
+
+async function execute(path, { method = 'GET', body, query, signal } = {}) {
   const url = buildUrl(path, query);
   let res = await send(url, { method, body, signal }, await getFreshToken());
   if (res.status === 401) {
     res = await send(url, { method, body, signal }, await getFreshToken({ force: true }));
   }
   if (!res.ok) throw await toApiError(res);
-  if (res.status === 204) return null;
+  if (res.status === 204) return { data: null, res };
   const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  return { data: text ? JSON.parse(text) : null, res };
+}
+
+/**
+ * Paginated list. Sends `page` (0-based) and `size` with the other filters and reads the filtered total from the
+ * `X-Total-Count` response header (exposed through CORS by the backend).
+ * @returns {Promise<{items: any[], total: number}>}
+ */
+export async function requestPage(path, { query, signal } = {}) {
+  const { data, res } = await execute(path, { query, signal });
+  const items = data ?? [];
+  const header = Number(res.headers.get('X-Total-Count'));
+  return { items, total: Number.isFinite(header) && res.headers.has('X-Total-Count') ? header : items.length };
+}
+
+/** Unauthenticated JSON POST for public endpoints (no Authorization header, no token refresh). */
+export async function postPublic(path, body, signal) {
+  let res;
+  try {
+    res = await fetch(buildUrl(path), {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (err) {
+    if (err?.name === 'AbortError') throw err;
+    throw new ApiError(0, 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.');
+  }
+  if (!res.ok) throw await toApiError(res);
+  return res.json();
 }
 
 export const get = (path, query, signal) => request(path, { query, signal });
+export const getPage = (path, query, signal) => requestPage(path, { query, signal });
 export const post = (path, body, signal) => request(path, { method: 'POST', body, signal });
 export const put = (path, body, signal) => request(path, { method: 'PUT', body, signal });
 export const patch = (path, body, signal) => request(path, { method: 'PATCH', body, signal });

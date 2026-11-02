@@ -1,9 +1,11 @@
-import { get, post, put, patch, del } from './http.js';
+import { get, getPage, post, put, patch, del } from './http.js';
 
 /** @typedef {{paqueteId:number, usuarioClienteId:number, centroDistId:number, paqueteOrigenId:number|null, codigo:string, estado:string, peso:number, volumen:number, direccionDestino:string, intentos:number, fechaCompromiso:string, despachadoAt:string|null, entregadoAt:string|null, fechaReprogramada:string|null}} Paquete */
 
 /** GET /api/paquete (cliente: own, repartidor: assigned, despachador: all). Filters apply server side. */
 export const listPaquetes = ({ estado, centroId } = {}, signal) => get('/api/paquete', { estado, centroId }, signal);
+/** Paginated GET /api/paquete. Filters: estado, centroId, q (codigo or destino). Resolves to { items, total }. */
+export const pagePaquetes = (query, signal) => getPage('/api/paquete', query, signal);
 /** GET /api/paquete/{id} */
 export const getPaquete = (id, signal) => get(`/api/paquete/${id}`, undefined, signal);
 /**

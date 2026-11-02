@@ -18,6 +18,7 @@ const lista = await paquetes.listPaquetes({ estado: 'En reparto' });
 | Function | Endpoint | Role |
 |---|---|---|
 | `auth.me()` | GET `/api/auth/me` | any |
+| `auth.registrar({nombre,email,password})` | POST `/api/auth/registro` | public (no token); creates a cliente |
 | `rastreo.rastrear(codigo)` | GET `/api/tracking/{codigo}` | any (cliente: own packages, else 403) |
 | `paquetes.listPaquetes({estado,centroId})` | GET `/api/paquete` | any (scoped by role) |
 | `paquetes.getPaquete(id)` | GET `/api/paquete/{id}` | any (scoped) |
@@ -42,6 +43,10 @@ const lista = await paquetes.listPaquetes({ estado: 'En reparto' });
 | `reportes.rendimiento()` | GET `/api/reportes/rendimiento` | despachador |
 | `reportes.alertas(umbral=85)` | GET `/api/reportes/alertas` | despachador |
 | `reportes.refrescar()` | POST `/api/reportes/refrescar` | despachador |
+
+## Pagination
+
+Every CRUD list also has a `page*` function (`paquetes.pagePaquetes`, `usuarios.pageUsuarios`, `centros.pageCentros`, `vehiculos.pageVehiculos`, `repartidores.pageRepartidores`, `rutas.pageRutas`, `rutaPaquete.pageRutaPaquetes`, `eventos.pageEventos`). They send `page` (0-based) and `size` plus the resource filters and resolve to `{ items, total }`, where `total` is the filtered count from the `X-Total-Count` header. The `list*` functions keep returning the full array (used by selects and lookups).
 
 ## Field names (exact JSON)
 

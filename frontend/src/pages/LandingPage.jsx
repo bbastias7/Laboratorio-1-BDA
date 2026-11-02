@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { homeFor } from '../auth/roles.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
@@ -41,6 +41,7 @@ export function LandingPage() {
           onSubmit={(code) => login(`/rastreo/${encodeURIComponent(code)}`)}
         />
         <p className="notice">Rastrear requiere iniciar sesión. Después de ingresar abrimos tu código automáticamente.</p>
+        <p className="notice">¿Aún no tienes cuenta? <Link to="/registro">Crear cuenta</Link></p>
       </section>
 
       <aside className="landing-sample" aria-label="Ejemplo ilustrativo de un recorrido">

@@ -1,9 +1,11 @@
-import { get, post, put, del } from './http.js';
+import { get, getPage, post, put, del } from './http.js';
 
 /** @typedef {{rutaId:number, centroDistId:number, repartidorId:number, vehiculoId:number, fecha:string}} Ruta */
 
 /** GET /api/ruta. despachador (all) or repartidor (own). */
 export const listRutas = (signal) => get('/api/ruta', undefined, signal);
+/** Paginated GET /api/ruta. Filters: centroId, repartidorId. Resolves to { items, total }. */
+export const pageRutas = (query, signal) => getPage('/api/ruta', query, signal);
 /** GET /api/ruta/{id}. despachador or repartidor (own). */
 export const getRuta = (id, signal) => get(`/api/ruta/${id}`, undefined, signal);
 /** POST /api/ruta. despachador. Bare route without packages; prefer asignarRuta. */

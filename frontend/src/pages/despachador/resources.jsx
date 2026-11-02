@@ -10,6 +10,7 @@ import { nowLocalInput } from '../../lib/numbers.js';
 
 const ESTADO_OPTIONS = Object.keys(ESTADOS).map((e) => ({ value: e, label: e }));
 const ROL_OPTIONS = ['cliente', 'repartidor', 'despachador'].map((r) => ({ value: r, label: r }));
+const RESULTADO_OPTIONS = ['Pendiente', 'Entregado', 'Fallido'].map((r) => ({ value: r, label: r }));
 const ELEGIBLES = ['Registrado', 'En centro', 'Reprogramado'];
 
 const nameOfUser = (ctx, id) => ctx.lookups.usuarios?.find((o) => o.value === id)?.raw.nombre ?? `Usuario ${id}`;
@@ -18,15 +19,20 @@ const byCentro = (key) => (values, _row, ctx) =>
 
 const usuariosConfig = {
   path: 'usuarios', title: 'Usuarios', singular: 'usuario',
-  intro: 'Perfiles de la aplicación. Cada perfil se vincula a una cuenta de Keycloak por su identificador.',
+  intro: 'Cuentas del personal y de los clientes. Al crear un usuario se genera también su cuenta de acceso, con una contraseña temporal.',
   getId: (r) => r.usuarioId,
+  search: { hint: 'Por nombre o correo.' },
+  filters: [{ name: 'rol', label: 'Rol', options: ROL_OPTIONS }],
   describe: (r) => `${r.nombre} (${r.email})`,
-  deleteNote: 'Si el usuario tiene paquetes, rutas o perfil de repartidor asociados, el servidor rechazará la eliminación.',
-  formNote: 'La identidad de un perfil no se puede cambiar si ya tiene operaciones asociadas; el servidor lo rechazará.',
+  deleteNote: 'También se elimina su cuenta de Keycloak. Si el usuario tiene paquetes, rutas o perfil de repartidor asociados, el servidor rechazará la eliminación. No puede eliminar su propia cuenta.',
+  formNote: 'Aquí se pueden cambiar el nombre, el correo y el rol; los cambios también se aplican a la cuenta de Keycloak. El identificador de Keycloak no se puede modificar.',
+  afterCreate: (body) => (body.rol === 'repartidor'
+    ? 'Para que reciba rutas, cree también su ficha en «Repartidores» y asígnele un centro de distribución.'
+    : null),
   api: {
-    list: (s) => usuarios.listUsuarios(s),
+    page: (q, s) => usuarios.pageUsuarios(q, s),
     create: (b) => usuarios.createUsuario(b),
-    update: (row, b) => usuarios.updateUsuario(row.usuarioId, b),
+    update: (row, b) => usuarios.updateUsuario(row.usuarioId, { ...b, keycloakId: row.keycloakId }),
     remove: (row) => usuarios.deleteUsuario(row.usuarioId),
   },
   columns: [
@@ -34,13 +40,18 @@ const usuariosConfig = {
     { key: 'nombre', header: 'Nombre', primary: true },
     { key: 'email', header: 'Correo' },
     { key: 'rol', header: 'Rol' },
-    { key: 'keycloakId', header: 'Id Keycloak', mono: true },
+    // A full UUID would take the table's spare width; show its ends (like shortCode) and keep the value in the title.
+    {
+      key: 'keycloakId', header: 'Id Keycloak', mono: true,
+      render: (r) => <span className="id-short" title={r.keycloakId} aria-label={r.keycloakId}>{`${r.keycloakId.slice(0, 8)}…${r.keycloakId.slice(-4)}`}</span>,
+      text: (r) => r.keycloakId,
+    },
   ],
   fields: [
     { name: 'nombre', label: 'Nombre', type: 'text', required: true, max: 64 },
     { name: 'email', label: 'Correo electrónico', type: 'email', required: true, max: 128 },
     { name: 'rol', label: 'Rol', type: 'select', required: true, options: ROL_OPTIONS },
-    { name: 'keycloakId', label: 'Identificador de Keycloak', type: 'text', required: true, max: 128, wide: true, hint: 'Valor «sub» de la cuenta en Keycloak (un UUID).' },
+    { name: 'password', label: 'Contraseña temporal', type: 'password', required: true, min: 8, max: 128, wide: true, modes: ['create'], hint: 'Mínimo 8 caracteres. La persona deberá cambiarla en su primer inicio de sesión.' },
   ],
 };
 
@@ -48,9 +59,10 @@ const centrosConfig = {
   path: 'centros', title: 'Centros de distribución', singular: 'centro de distribución',
   getId: (r) => r.centroDistId,
   describe: (r) => r.nombre,
+  search: { hint: 'Por nombre del centro.' },
   deleteNote: 'Si el centro tiene vehículos, repartidores, rutas o paquetes asociados, el servidor rechazará la eliminación.',
   api: {
-    list: (s) => centros.listCentros(s),
+    page: (q, s) => centros.pageCentros(q, s),
     create: (b) => centros.createCentro(b),
     update: (row, b) => centros.updateCentro(row.centroDistId, b),
     remove: (row) => centros.deleteCentro(row.centroDistId),
@@ -72,12 +84,14 @@ const vehiculosConfig = {
   path: 'vehiculos', title: 'Vehículos', singular: 'vehículo',
   intro: 'La capacidad de peso y volumen es el límite que valida la base de datos al asignar rutas.',
   getId: (r) => r.vehiculoId,
+  search: { hint: 'Por patente.' },
+  filters: [{ name: 'centroDistId', param: 'centroId', label: 'Centro', lookup: 'centros' }],
   describe: (r) => r.patente,
   deleteNote: 'Si el vehículo tiene rutas asociadas, el servidor rechazará la eliminación.',
   formNote: 'No puedes bajar la capacidad por debajo de la carga de una ruta existente, ni cambiar el centro de un vehículo con rutas.',
   lookups: ['centros'],
   api: {
-    list: (s) => vehiculos.listVehiculos(s),
+    page: (q, s) => vehiculos.pageVehiculos(q, s),
     create: (b) => vehiculos.createVehiculo(b),
     update: (row, b) => vehiculos.updateVehiculo(row.vehiculoId, b),
     remove: (row) => vehiculos.deleteVehiculo(row.vehiculoId),
@@ -101,12 +115,13 @@ const repartidoresConfig = {
   path: 'repartidores', title: 'Repartidores', singular: 'repartidor',
   intro: 'Perfil operativo de un usuario con rol repartidor, asignado a un centro.',
   getId: (r) => r.repartidorId,
+  filters: [{ name: 'centroDistId', param: 'centroId', label: 'Centro', lookup: 'centros' }],
   describe: (r) => `repartidor ${r.repartidorId}`,
   deleteNote: 'Si el repartidor tiene rutas asociadas, el servidor rechazará la eliminación.',
   formNote: 'No se puede reasignar un repartidor que ya tiene rutas históricas.',
   lookups: ['usuarios', 'usuariosRepartidor', 'centros'],
   api: {
-    list: (s) => repartidores.listRepartidores(s),
+    page: (q, s) => repartidores.pageRepartidores(q, s),
     create: (b) => repartidores.createRepartidor(b),
     update: (row, b) => repartidores.updateRepartidor(row.repartidorId, b),
     remove: (row) => repartidores.deleteRepartidor(row.repartidorId),
@@ -126,12 +141,16 @@ const rutasConfig = {
   path: 'rutas', title: 'Rutas', singular: 'ruta', fem: true, newestFirst: true,
   intro: 'Para crear una ruta con paquetes y validar la capacidad usa «Asignar ruta».',
   getId: (r) => r.rutaId,
+  filters: [
+    { name: 'centroDistId', param: 'centroId', label: 'Centro', lookup: 'centros' },
+    { name: 'repartidorId', label: 'Repartidor', lookup: 'repartidores' },
+  ],
   describe: (r) => `la ruta ${r.rutaId}`,
   deleteNote: 'Si la ruta tiene paquetes asignados, el servidor rechazará la eliminación.',
   formNote: 'Una ruta que ya tiene paquetes asignados no se puede modificar; el servidor lo rechazará.',
   lookups: ['centros', 'repartidores', 'vehiculos'],
   api: {
-    list: (s) => rutas.listRutas(s),
+    page: (q, s) => rutas.pageRutas(q, s),
     create: (b) => rutas.createRuta(b),
     update: (row, b) => rutas.updateRuta(row.rutaId, b),
     remove: (row) => rutas.deleteRuta(row.rutaId),
@@ -155,6 +174,10 @@ const rutaPaqueteConfig = {
   path: 'asignaciones', title: 'Asignaciones ruta-paquete', singular: 'asignación', fem: true, newestFirst: true,
   intro: 'Las asignaciones resueltas (Entregado o Fallido) son historial: no se editan ni se eliminan.',
   getId: (r) => `${r.rutaId}-${r.paqueteId}`,
+  filters: [
+    { name: 'resultado', label: 'Resultado', options: RESULTADO_OPTIONS },
+    { name: 'rutaId', label: 'Ruta', lookup: 'rutas' },
+  ],
   describe: (r) => `la asignación del paquete ${r.paqueteId} a la ruta ${r.rutaId}`,
   deleteNote: 'Al quitar un paquete pendiente de una ruta, vuelve al estado «En centro».',
   formNote: 'Solo puedes marcar el resultado como Entregado o Fallido; una asignación resuelta no se reabre. Marcarla Fallida cuenta como intento fallido.',
@@ -162,7 +185,7 @@ const rutaPaqueteConfig = {
   canEdit: (r) => r.resultado === 'Pendiente',
   canDelete: (r) => r.resultado === 'Pendiente',
   api: {
-    list: (s) => rutaPaquete.listRutaPaquetes(s),
+    page: (q, s) => rutaPaquete.pageRutaPaquetes(q, s),
     create: (b) => rutaPaquete.createRutaPaquete(b),
     update: (row, b) => rutaPaquete.updateRutaPaquete(row.rutaId, row.paqueteId, { rutaId: row.rutaId, paqueteId: row.paqueteId, resultado: b.resultado }),
     remove: (row) => rutaPaquete.deleteRutaPaquete(row.rutaId, row.paqueteId),
@@ -191,10 +214,14 @@ const eventosConfig = {
   path: 'eventos', title: 'Eventos de seguimiento', singular: 'evento', newestFirst: true,
   intro: 'Historial que ve el cliente en el rastreo. Editarlo no cambia el estado del paquete.',
   getId: (r) => r.eventoId,
+  filters: [
+    { name: 'estado', label: 'Estado', options: ESTADO_OPTIONS },
+    { name: 'paqueteId', label: 'Paquete', lookup: 'paquetes' },
+  ],
   describe: (r) => `el evento ${r.eventoId}`,
   lookups: ['paquetes'],
   api: {
-    list: (s) => eventos.listEventos(s),
+    page: (q, s) => eventos.pageEventos(q, s),
     create: (b) => eventos.createEvento(b),
     update: (row, b) => eventos.updateEvento(row.eventoId, { ...b, eventoId: row.eventoId }),
     remove: (row) => eventos.deleteEvento(row.eventoId),
@@ -218,12 +245,17 @@ const paquetesConfig = {
   path: 'paquetes', title: 'Paquetes', singular: 'paquete', newestFirst: true,
   intro: 'El código de seguimiento lo genera la base de datos. Una vez despachado, el servidor no permite cambiar carga, cliente, centro ni fecha compromiso.',
   getId: (r) => r.paqueteId,
+  search: { hint: 'Por código o dirección de destino.' },
+  filters: [
+    { name: 'estado', label: 'Estado', options: ESTADO_OPTIONS },
+    { name: 'centroDistId', param: 'centroId', label: 'Centro', lookup: 'centros' },
+  ],
   describe: (r) => `el paquete ${r.codigo ? shortCode(r.codigo) : r.paqueteId}`,
   deleteNote: 'Si el paquete tiene eventos o asignaciones asociados, el servidor rechazará la eliminación.',
   formNote: 'El estado solo avanza con las acciones de asignación y entrega; aquí puedes pasar un paquete Registrado a «En centro».',
   lookups: ['usuarios', 'clientes', 'centros'],
   api: {
-    list: (s) => paquetes.listPaquetes({}, s),
+    page: (q, s) => paquetes.pagePaquetes(q, s),
     create: (b) => paquetes.createPaquete(b),
     update: (row, b) => paquetes.updatePaquete(row.paqueteId, b),
     remove: (row) => paquetes.deletePaquete(row.paqueteId),

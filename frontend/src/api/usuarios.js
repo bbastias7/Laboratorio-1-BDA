@@ -1,9 +1,11 @@
-import { get, post, put, del } from './http.js';
+import { get, getPage, post, put, del } from './http.js';
 
 /** @typedef {{usuarioId:number, nombre:string, email:string, rol:'cliente'|'repartidor'|'despachador', keycloakId:string}} Usuario */
 
 /** All endpoints: despachador. */
 export const listUsuarios = (signal) => get('/api/usuarios', undefined, signal);
+/** Paginated GET /api/usuarios. Filters: rol, q (nombre or correo). Resolves to { items, total }. */
+export const pageUsuarios = (query, signal) => getPage('/api/usuarios', query, signal);
 export const getUsuario = (id, signal) => get(`/api/usuarios/${id}`, undefined, signal);
 /** GET /api/usuarios/email?correo= */
 export const findUsuarioByEmail = (correo, signal) => get('/api/usuarios/email', { correo }, signal);

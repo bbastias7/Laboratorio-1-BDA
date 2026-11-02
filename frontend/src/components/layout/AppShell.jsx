@@ -4,7 +4,7 @@ import { useAuth } from '../../auth/AuthProvider.jsx';
 import { ROLE_LABEL } from '../../auth/roles.js';
 import { isNavActive, navFor } from '../../nav.js';
 import { Icon } from '../Icon.jsx';
-import { Button } from '../ui/Button.jsx';
+import { Button, LinkButton } from '../ui/Button.jsx';
 import { Brand } from './Brand.jsx';
 import { ThemeToggle } from './ThemeToggle.jsx';
 
@@ -80,7 +80,10 @@ export function AppShell() {
           )}
           <div className="topbar-tools">
             {status === 'anonymous' && (
-              <Button variant="primary" size="sm" icon="login" onClick={() => login('/')}>Ingresar</Button>
+              <>
+                <LinkButton to="/registro" variant="secondary" size="sm">Crear cuenta</LinkButton>
+                <Button variant="primary" size="sm" icon="login" onClick={() => login('/')}>Ingresar</Button>
+              </>
             )}
             <ThemeToggle />
           </div>
